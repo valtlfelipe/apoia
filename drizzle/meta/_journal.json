@@ -15,6 +15,13 @@
       "when": 1788458724639,
       "tag": "0001_big_prism",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1788463288210,
+      "tag": "0002_previous_captain_flint",
+      "breakpoints": true
     }
   ]
 }

@@ -24,22 +24,6 @@ const creatorLinkSchema = z.object({
   url: z.string().url(),
 });
 
-const productSchema = z.object({
-  slug: z
-    .string()
-    .regex(
-      /^[a-z0-9][a-z0-9-]{0,48}$/,
-      "slug must be lowercase alphanumeric with hyphens, starting with a letter or number",
-    )
-    .refine(
-      (slug) => !["api", "_next", "avatar", "favicon.ico"].includes(slug),
-      "slug conflicts with a reserved route",
-    ),
-  name: z.string().min(1).max(80),
-  headline: z.string().min(1).max(200).optional(),
-  description: z.string().max(400).optional(),
-});
-
 const jsonArray = <T extends z.ZodTypeAny>(schema: T, fieldName: string) =>
   z
     .string()
@@ -84,9 +68,6 @@ const envSchema = z
     APOIA_CREATOR_LINKS: jsonArray(creatorLinkSchema, "APOIA_CREATOR_LINKS"),
     APOIA_SITE_URL: z.string().url(),
 
-    // --- Products ---
-    APOIA_PRODUCTS: jsonArray(productSchema, "APOIA_PRODUCTS"),
-
     // --- Support form ---
     APOIA_AMOUNT_PRESETS: csvInts([500, 1500, 2500]),
     APOIA_MIN_AMOUNT_CENTS: intFromString(100),
@@ -111,6 +92,16 @@ const envSchema = z
     WOOVI_API_URL: z.string().url().default("https://api.woovi.com/api/v1"),
     WOOVI_WEBHOOK_TOKEN: z.string().optional(),
     WOOVI_WEBHOOK_PUBLIC_KEY: z.string().optional(),
+
+    // --- Admin ---
+    // Both optional, but required together: set neither to keep /admin fully
+    // disabled (every admin route 404s — see lib/auth/admin.ts), or set both
+    // to turn it on. APOIA_ADMIN_EMAIL is the only account allowed in, after
+    // signing in with shoo.dev; APOIA_ADMIN_SECRET signs our own session
+    // cookie (independent of shoo's token) — generate with `openssl rand
+    // -base64 32`.
+    APOIA_ADMIN_EMAIL: z.string().email().optional(),
+    APOIA_ADMIN_SECRET: z.string().min(32).optional(),
   })
   .superRefine((env, ctx) => {
     if (env.APOIA_MIN_AMOUNT_CENTS < 100) {
@@ -128,16 +119,12 @@ const envSchema = z
       });
     }
 
-    const slugs = new Set<string>();
-    for (const product of env.APOIA_PRODUCTS) {
-      if (slugs.has(product.slug)) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["APOIA_PRODUCTS"],
-          message: `duplicate product slug: "${product.slug}"`,
-        });
-      }
-      slugs.add(product.slug);
+    if (Boolean(env.APOIA_ADMIN_EMAIL) !== Boolean(env.APOIA_ADMIN_SECRET)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["APOIA_ADMIN_EMAIL"],
+        message: "APOIA_ADMIN_EMAIL and APOIA_ADMIN_SECRET must be set together (or neither)",
+      });
     }
 
     if (env.PIX_PROVIDER === "woovi" && !env.WOOVI_APP_ID) {
@@ -179,6 +166,19 @@ function loadEnv(): Env {
     console.error(`\nInvalid configuration. Fix your environment and restart:\n${issues}\n`);
     throw new Error("Invalid environment configuration");
   }
+
+  // APOIA_PRODUCTS was removed in favor of the /admin product manager.
+  // Unknown keys are silently ignored by zod, so warn explicitly — someone
+  // upgrading with the old var still set would otherwise wonder why their
+  // products vanished.
+  if (process.env.APOIA_PRODUCTS !== undefined) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      "\nAPOIA_PRODUCTS is set but no longer used — products are now managed at /admin. " +
+        "Remove it from your .env; its value is ignored.\n",
+    );
+  }
+
   return result.data;
 }
 

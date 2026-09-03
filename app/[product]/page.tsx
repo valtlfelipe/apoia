@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { product: slug } = await params;
   const product = getProduct(slug);
-  if (!product) return {};
+  if (!product?.isActive) return {};
   return {
     title: product.headline,
     description: product.description ?? `Apoie ${appConfig.creator.name} com Pix.`,
@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 export default async function ProductPage({ params }: ProductPageProps) {
   const { product: slug } = await params;
   const product = getProduct(slug);
-  if (!product) notFound();
+  if (!product?.isActive) notFound();
 
   return (
     <main className="mx-auto flex max-w-[1120px] flex-col gap-12 px-6 py-14 sm:py-20">

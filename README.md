@@ -4,8 +4,9 @@ Uma página simples para receber apoio via Pix — pensada para quem mantém pro
 open source no Brasil. Inspirada no [Buy Me a Coffee](https://buymeacoffee.com), mas
 focada no público brasileiro: **só Pix**, sem coletar e-mail, CPF ou telefone.
 
-Self-hosted, open source, configurável só por variáveis de ambiente. Sem painel de
-admin, sem login — tudo em uma página só.
+Self-hosted, open source. Um admin opcional (login com Google via
+[shoo.dev](https://shoo.dev)) cuida de produtos e apoios; o resto continua
+configurável só por variáveis de ambiente — sem admin nenhum, se você preferir.
 
 [![Release](https://github.com/valtlfelipe/apoia/actions/workflows/release.yml/badge.svg)](https://github.com/valtlfelipe/apoia/actions/workflows/release.yml)
 [![Release](https://img.shields.io/github/v/release/valtlfelipe/apoia)](https://github.com/valtlfelipe/apoia/releases)
@@ -24,7 +25,10 @@ admin, sem login — tudo em uma página só.
   ou e-mail — a semente é sempre um ID opaco, mesmo para apoios públicos.
 - **Páginas de produto opcionais**: `/financeiro` mostra "Apoie Felipe no
   desenvolvimento do Financeiro"; a raiz aceita apoio genérico. Tudo cai na mesma
-  timeline compartilhada.
+  timeline compartilhada. Gerenciadas pelo `/admin` (veja [Admin](#admin-opcional)).
+- **Admin opcional**: cadastro de produtos e uma visão dos apoios com nome e
+  mensagem reais — inclusive de quem pediu para ficar anônimo na timeline, com a
+  opção de tirar (ou devolver) alguém da vitrine pública. Desligado por padrão.
 - **Pix modular**: a integração com o provedor de pagamento é uma interface
   (`PixProvider`) — hoje só a [Woovi](https://woovi.com) está implementada, mas
   trocar (ou adicionar um segundo provedor) é escrever um arquivo novo.
@@ -107,16 +111,9 @@ o resumo:
 | `APOIA_CREATOR_LINKS` | não | JSON `[{"label","url"}]` — links mostrados no topo. |
 | `APOIA_SITE_URL` | sim | URL pública desta instância (usada em metadata e no registro do webhook). |
 
-### Produtos (opcional)
-
-`APOIA_PRODUCTS` é um array JSON de `{ slug, name, headline?, description? }`. Cada
-produto ganha uma rota `/<slug>` com headline própria (aceita `{creator}` — o nome
-curto, `{creatorFullName}` e `{product}` como placeholders). Deixe `"[]"` para só
-ter apoio genérico na raiz.
-
-```env
-APOIA_PRODUCTS='[{"slug":"financeiro","name":"Financeiro","headline":"Apoie {creator} no desenvolvimento do {product}"}]'
-```
+> **Produtos** (`/financeiro`, headline, etc.) não são mais uma variável de
+> ambiente — cadastre-os pelo [`/admin`](#admin-opcional). Sem admin habilitado, a
+> instância só tem a página raiz com apoio genérico.
 
 ### Formulário de apoio
 
@@ -147,6 +144,16 @@ APOIA_PRODUCTS='[{"slug":"financeiro","name":"Financeiro","headline":"Apoie {cre
 
 `DATABASE_PATH` — caminho do arquivo SQLite (padrão `./data/apoia.db`; no Docker é
 fixado em `/data/apoia.db`, dentro do volume).
+
+### Admin (opcional)
+
+| Variável | Descrição |
+|---|---|
+| `APOIA_ADMIN_EMAIL` | A única conta Google autorizada a entrar em `/admin`. |
+| `APOIA_ADMIN_SECRET` | Assina o cookie de sessão do admin. Gere com `openssl rand -base64 32`. |
+
+As duas juntas ligam o `/admin`; nenhuma das duas (o padrão) o desliga por completo —
+toda rota sob `/admin` responde 404. Veja [Admin](#admin) abaixo.
 
 ## Configurando a Woovi
 
@@ -194,14 +201,41 @@ Para testar o fluxo de confirmação sem um pagamento Pix real:
    Isso simula um evento `OPENPIX:CHARGE_COMPLETED` para aquele apoio, direto no seu
    servidor local.
 
+## Admin
+
+Desligado por padrão — sem `APOIA_ADMIN_EMAIL`/`APOIA_ADMIN_SECRET`, `/admin` não
+existe (404 em qualquer rota sob ele). Habilitado, dá acesso a:
+
+- **Produtos**: criar, editar, ativar/desativar e (se ainda não tiver apoios)
+  excluir as páginas `/<slug>`.
+- **Apoios**: uma lista com nome e mensagem **reais**, mesmo de quem marcou
+  "aparecer como anônimo" na timeline pública — com um botão para ocultar (ou
+  devolver) alguém da vitrine. Ver [Privacidade e segurança](#privacidade-e-segurança)
+  abaixo.
+
+O login usa o Google via [shoo.dev](https://shoo.dev), um broker de autenticação
+minimalista: você clica em "Entrar com Google", ele confirma sua identidade e
+devolve um token assinado — o apoia verifica esse token no servidor (nunca no
+navegador) e só libera a sessão se o e-mail confirmado bater com
+`APOIA_ADMIN_EMAIL`. A sessão em si é um cookie próprio do apoia, independente do
+shoo.
+
+> **shoo.dev está em estágio inicial** ("SUPER EARLY WIP" no próprio site) — é por
+> isso que `APOIA_ADMIN_EMAIL`/`APOIA_ADMIN_SECRET` são uma segunda trava
+> independente dele: mesmo que o shoo tenha um problema, só a conta exata que você
+> configurou entra. Toda a integração vive em `lib/auth/shoo.ts` — trocar de
+> provedor mais adiante é reescrever um arquivo, no mesmo espírito de
+> [Adicionando outro provedor de Pix](#adicionando-outro-provedor-de-pix).
+
 ## Privacidade e segurança
 
 - **Nenhum dado pessoal é coletado** além do que a pessoa opcionalmente digita: nome
   e mensagem. Sem e-mail, CPF ou telefone.
-- **Anônimo é anônimo de verdade**: se a pessoa desmarcar "aparecer na timeline", a
-  API pública (`/api/timeline` e a própria página) nunca retorna o nome ou a
-  mensagem reais — só "Anônimo" e o valor. Os dados reais ficam apenas no SQLite,
-  visível só para quem tem acesso ao servidor.
+- **Anônimo na vitrine pública, não no banco**: se a pessoa desmarcar "aparecer na
+  timeline", a API pública (`/api/timeline` e a própria página) nunca retorna o
+  nome ou a mensagem reais — só "Anônimo" e o valor. Os dados reais ficam no
+  SQLite e, se o `/admin` estiver habilitado, são visíveis só para
+  `APOIA_ADMIN_EMAIL` — nunca pela API pública.
 - **Payload do webhook é higienizado antes de salvar**: a Woovi manda o nome e o
   CPF de quem pagou dentro do evento de confirmação — esse bloco é removido antes
   de qualquer persistência, inclusive do log de auditoria (`webhook_events`).
@@ -212,10 +246,9 @@ Para testar o fluxo de confirmação sem um pagamento Pix real:
 - Headers de segurança (CSP, HSTS, `X-Frame-Options`, etc.) configurados por padrão
   em `next.config.ts`.
 
-Hoje não existe uma forma de ver, pela própria aplicação, o nome/mensagem de quem
-pediu para ficar anônimo — os dados estão no SQLite, mas não há CLI nem rota para
-consultá-los. É proposital: essa parte foi deixada de fora para ser desenhada com
-mais cuidado depois.
+Sem `/admin` habilitado, não existe nenhuma forma de ver, pela aplicação, o
+nome/mensagem de quem pediu para ficar anônimo — os dados continuam no SQLite, mas
+sem CLI nem rota que os exponha.
 
 ## Desenvolvimento local
 

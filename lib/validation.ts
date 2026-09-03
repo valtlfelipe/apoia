@@ -36,7 +36,7 @@ export const createSupportSchema = z
       .string()
       .max(60)
       .optional()
-      .refine((slug) => slug === undefined || getProduct(slug) !== null, {
+      .refine((slug) => slug === undefined || getProduct(slug)?.isActive === true, {
         message: "produto desconhecido",
       }),
   })

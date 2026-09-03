@@ -1,6 +1,36 @@
 import { sql } from "drizzle-orm";
 import { index, integer, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
 
+/**
+ * A support page beyond the generic root — gets its own route at `/<slug>`
+ * with a tailored headline. Managed entirely from `/admin`; there is no ENV
+ * equivalent (see CHANGELOG for the breaking removal of `APOIA_PRODUCTS`).
+ *
+ * `slug` is the primary key AND treated as immutable by the admin UI:
+ * `supports.product_slug` references it by convention (no FK — see below),
+ * so renaming a slug would orphan the product badge on every past support.
+ * Editing a product never changes its slug; retiring one means deactivating
+ * it (`isActive: false`) or, only once it has zero supports, deleting it.
+ */
+export const products = sqliteTable("products", {
+  slug: text("slug").primaryKey(),
+  name: text("name").notNull(),
+  // null = fall back to DEFAULT_HEADLINE_TEMPLATE (see lib/config/products.ts).
+  headline: text("headline"),
+  description: text("description"),
+  // false hides the /<slug> page (404) and excludes it from admin dropdowns,
+  // but getProduct() keeps resolving it so past supports still show a badge.
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  // Display order in the public nav / admin list. Lower sorts first.
+  position: integer("position").notNull().default(0),
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
+    .notNull()
+    .default(sql`(unixepoch('subsec') * 1000)`),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+    .notNull()
+    .default(sql`(unixepoch('subsec') * 1000)`),
+});
+
 export const supportStatuses = ["pending", "paid", "expired"] as const;
 export type SupportStatus = (typeof supportStatuses)[number];
 
@@ -12,7 +42,8 @@ export type SupportStatus = (typeof supportStatuses)[number];
  * PRIVACY: `displayName` and `message` are always stored, but only ever leave
  * the server through `lib/supports/public.ts`, which redacts them whenever
  * `isPublic` is false. Never `select()` this table wholesale for anything
- * that reaches a client.
+ * that reaches a client — the one authorized exception is the admin-only
+ * read path in `lib/supports/admin.ts`, gated by `requireAdmin()`.
  */
 export const supports = sqliteTable(
   "supports",
@@ -22,6 +53,9 @@ export const supports = sqliteTable(
     provider: text("provider").notNull(),
     providerChargeId: text("provider_charge_id"),
 
+    // References products.slug by convention, not a real FK: a support must
+    // stay queryable even after its product is deleted (empty products are
+    // deletable — see lib/products/repo.ts).
     productSlug: text("product_slug"),
 
     amountCents: integer("amount_cents").notNull(),
@@ -78,3 +112,5 @@ export type Support = typeof supports.$inferSelect;
 export type NewSupport = typeof supports.$inferInsert;
 export type WebhookEvent = typeof webhookEvents.$inferSelect;
 export type NewWebhookEvent = typeof webhookEvents.$inferInsert;
+export type ProductRow = typeof products.$inferSelect;
+export type NewProductRow = typeof products.$inferInsert;

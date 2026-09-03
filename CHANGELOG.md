@@ -4,6 +4,14 @@ Todas as mudanças relevantes serão registradas aqui. O formato segue Keep a Ch
 
 ## [Unreleased]
 
+### Added
+
+- Painel `/admin` opcional (desligado por padrão), com login via Google usando [shoo.dev](https://shoo.dev): cadastro de produtos (criar, editar, ativar/desativar, excluir) e uma lista de apoios com nome e mensagem reais — inclusive de quem pediu para ficar anônimo na timeline pública — com um botão para ocultar (ou devolver) alguém da vitrine sem apagar o dado. Ligado por `APOIA_ADMIN_EMAIL` + `APOIA_ADMIN_SECRET`.
+
+### Changed
+
+- **BREAKING**: `APOIA_PRODUCTS` foi removida. Produtos agora são gerenciados pelo `/admin` e vivem no banco (tabela `products`), não mais no `.env`. Quem atualiza precisa recadastrar seus produtos pelo admin — a variável antiga é ignorada (com aviso no boot) em vez de causar erro.
+
 ## [0.1.0] - 2026-09-03
 
 ### Added
