@@ -15,6 +15,10 @@ Todas as mudanças relevantes serão registradas aqui. O formato segue Keep a Ch
 - **BREAKING**: `APOIA_AMOUNT_PRESETS`, `APOIA_MIN_AMOUNT_CENTS`, `APOIA_MAX_AMOUNT_CENTS`, `APOIA_DEFAULT_PUBLIC`, `APOIA_SHOW_TOTAL_COUNT`, `APOIA_SHOW_TOTAL_AMOUNT`, `APOIA_AVATAR_STYLE` e `APOIA_CHARGE_EXPIRES_IN` foram removidas. Esse grupo (valores sugeridos, mínimo/máximo, os checkboxes da timeline, estilo do avatar gerado, validade da cobrança Pix) agora é gerenciado pelo `/admin` e vive no banco (mesma tabela `settings`). Sem o admin habilitado, a instância roda com os padrões do código (idênticos aos defaults antigos da ENV: presets R$5/15/25, mínimo R$1, máximo R$10.000, timeline pública marcada por padrão, contagem visível e total oculto, avatar "notionists", cobrança válida por 30 minutos). As variáveis antigas são ignoradas (com aviso no boot) em vez de causar erro. `APOIA_THANK_YOU_MESSAGE` e `APOIA_RATE_LIMIT_PER_MINUTE` continuam no `.env`.
 - O `img-src` do Content-Security-Policy passou de uma allowlist por origem (derivada de `APOIA_CREATOR_AVATAR_URL` no boot) para aceitar qualquer origem `https:` — necessário porque a URL do avatar agora é configurável em runtime pelo `/admin`, não mais fixada no boot. `script-src` continua travado em `'self'`; a aplicação não tem superfície de injeção de HTML.
 
+### Removed
+
+- **BREAKING**: `APOIA_DEV_SKIP_WEBHOOK_SIGNATURE` foi removida — não há mais como pular a verificação de assinatura do webhook. Junto foram embora `pnpm dev:webhook` (simulava uma confirmação de pagamento local, e só existia pra contornar a assinatura) e `pnpm pix:webhook` (registrava o webhook na Woovi via API — específico do provedor). O registro do webhook continua documentado no README, direto via `curl`/painel da Woovi.
+
 ## [0.1.0] - 2026-09-03
 
 ### Added

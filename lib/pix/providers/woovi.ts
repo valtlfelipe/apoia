@@ -152,10 +152,6 @@ async function getChargeStatus(ref: { correlationId: string }): Promise<SupportS
 }
 
 async function verifyWebhook(rawBody: string, headers: Headers): Promise<boolean> {
-  if (env.APOIA_DEV_SKIP_WEBHOOK_SIGNATURE) {
-    return true;
-  }
-
   const signature = headers.get(WOOVI_SIGNATURE_HEADER);
   if (!signature) return false;
 

@@ -6,12 +6,6 @@ import { z } from "zod";
  * later mid-request (or worse, mid-payment).
  */
 
-const boolFromString = (defaultValue: boolean) =>
-  z
-    .string()
-    .optional()
-    .transform((v) => (v === undefined ? defaultValue : v === "true" || v === "1"));
-
 const intFromString = (defaultValue: number) =>
   z
     .string()
@@ -29,7 +23,6 @@ const envSchema = z
     // {amount} placeholder.
     APOIA_THANK_YOU_MESSAGE: z.string().max(300).optional(),
     APOIA_RATE_LIMIT_PER_MINUTE: intFromString(5),
-    APOIA_DEV_SKIP_WEBHOOK_SIGNATURE: boolFromString(false),
 
     // --- Database ---
     DATABASE_PATH: z.string().min(1).default("./data/apoia.db"),
@@ -65,14 +58,6 @@ const envSchema = z
         code: "custom",
         path: ["WOOVI_APP_ID"],
         message: "WOOVI_APP_ID is required when PIX_PROVIDER=woovi",
-      });
-    }
-
-    if (env.APOIA_DEV_SKIP_WEBHOOK_SIGNATURE && env.NODE_ENV === "production") {
-      ctx.addIssue({
-        code: "custom",
-        path: ["APOIA_DEV_SKIP_WEBHOOK_SIGNATURE"],
-        message: "must not be enabled in production — this would let anyone fake a payment",
       });
     }
 

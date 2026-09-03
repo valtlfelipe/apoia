@@ -14,8 +14,6 @@
     "db:migrate": "tsx --env-file=.env lib/db/migrate.ts",
     "db:migrate:build": "esbuild lib/db/migrate.ts --bundle --platform=node --format=cjs --target=node22 --external:better-sqlite3 --external:node:sqlite --outfile=dist-migrate/migrate.cjs",
     "db:studio": "drizzle-kit studio",
-    "pix:webhook": "tsx --env-file=.env scripts/register-webhook.ts",
-    "dev:webhook": "tsx --env-file=.env scripts/dev-webhook.ts",
     "lint": "biome check .",
     "format": "biome format --write .",
     "typecheck": "tsc --noEmit",

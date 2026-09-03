@@ -155,8 +155,9 @@ toda rota sob `/admin` responde 404. Veja [Admin](#admin) abaixo.
    *Applications* no painel.
 2. Coloque em `WOOVI_APP_ID` no `.env`.
 3. Depois do deploy (com `APOIA_SITE_URL` apontando para uma URL pública HTTPS),
-   registre o webhook. Sem o repositório clonado, faça direto via `curl` —
-   exporte suas variáveis e rode:
+   registre o webhook — direto via `curl`, apontando pra
+   `$APOIA_SITE_URL/api/webhooks/woovi`, que é a rota que este projeto expõe pra
+   receber a confirmação de pagamento:
 
    ```bash
    export WOOVI_APP_ID="..."                        # o mesmo do .env
@@ -171,29 +172,13 @@ toda rota sob `/admin` responde 404. Veja [Admin](#admin) abaixo.
    done
    ```
 
-   Com o repositório clonado (desenvolvimento local), `pnpm pix:webhook` faz o
-   mesmo a partir do `.env`.
+   Isso é um passo único por deploy (refaça só se `APOIA_SITE_URL` mudar) — não tem
+   variável nem script deste projeto que faça isso por você; é uma chamada direto na
+   API da Woovi, no painel dela ou por `curl` mesmo.
 
 O webhook é a fonte de verdade para confirmar pagamento — a página também faz
 *polling* de status a cada poucos segundos como reforço, útil em ambientes onde o
 webhook ainda não foi configurado (dev local, por exemplo).
-
-### Testando sem uma conta Woovi
-
-Para testar o fluxo de confirmação sem um pagamento Pix real:
-
-1. Rode a app localmente e crie um apoio pelo formulário (vai falhar ao gerar a
-   cobrança de verdade, mas isso não impede o teste abaixo).
-2. Ou insira uma linha `pending` direto no SQLite para simular uma cobrança criada.
-3. Com `APOIA_DEV_SKIP_WEBHOOK_SIGNATURE=true` no `.env` (**nunca em produção** — o
-   boot recusa subir com essa flag e `NODE_ENV=production` juntas), rode:
-
-   ```bash
-   pnpm dev:webhook <id-do-apoio>
-   ```
-
-   Isso simula um evento `OPENPIX:CHARGE_COMPLETED` para aquele apoio, direto no seu
-   servidor local.
 
 ## Admin
 
@@ -272,8 +257,10 @@ Abra http://localhost:3000.
 
 Sem um `WOOVI_APP_ID` de verdade, o formulário de apoio vai falhar ao criar a
 cobrança (esperado) — mas a página, a timeline e as validações funcionam normalmente
-com dados de teste inseridos direto no SQLite. Veja [Testando sem uma conta Woovi](#testando-sem-uma-conta-woovi)
-acima.
+com dados de teste inseridos direto no SQLite (ex.: uma linha `paid` pra ver como a
+timeline renderiza). Testar o fluxo de confirmação de ponta a ponta requer uma conta
+Woovi de verdade (sandbox inclusa) — sem ela, o webhook nunca chega e a assinatura
+sempre precisa bater com o payload real da Woovi.
 
 Pra buildar a imagem localmente em vez de usar a publicada (útil testando
 mudanças no `Dockerfile`):
@@ -331,8 +318,6 @@ as notas tiradas direto da seção correspondente do changelog.
 | `pnpm db:generate` | Gera uma migration a partir de `lib/db/schema.ts`. |
 | `pnpm db:migrate` | Aplica as migrations pendentes. |
 | `pnpm db:studio` | Abre o [Drizzle Studio](https://orm.drizzle.team/drizzle-studio/overview) para inspecionar o banco. |
-| `pnpm pix:webhook` | Registra o webhook no provedor de Pix ativo. |
-| `pnpm dev:webhook <id>` | Simula a confirmação de pagamento de um apoio local. |
 | `pnpm check` | Lint (Biome) + typecheck. |
 
 ## Licença
