@@ -91,35 +91,6 @@ Tags disponíveis: `latest` e `<major>.<minor>.<patch>` (ex.: `0.1.0`) a partir 
 cada release marcada com uma tag `vX.Y.Z`; `edge` fica disponível quando o
 workflow é disparado manualmente a partir da `main`.
 
-## Desenvolvimento local
-
-Pra mexer no código (não necessário só pra hospedar). Requer Node.js 24+ e
-[pnpm](https://pnpm.io).
-
-```bash
-git clone https://github.com/valtlfelipe/apoia.git
-cd apoia
-pnpm install
-cp .env.example .env      # edite com seus dados (veja a seção de ENVs abaixo)
-pnpm db:generate           # só na primeira vez, ou após mudar lib/db/schema.ts
-pnpm db:migrate
-pnpm dev
-```
-
-Abra http://localhost:3000.
-
-Sem um `WOOVI_APP_ID` de verdade, o formulário de apoio vai falhar ao criar a
-cobrança (esperado) — mas a página, a timeline e as validações funcionam normalmente
-com dados de teste inseridos direto no SQLite. Veja [Testando sem uma conta Woovi](#testando-sem-uma-conta-woovi)
-abaixo.
-
-Pra buildar a imagem localmente em vez de usar a publicada (útil testando
-mudanças no `Dockerfile`):
-
-```bash
-docker compose up -d --build
-```
-
 ## Configuração (variáveis de ambiente)
 
 Tudo fica no `.env`. Veja `.env.example` para a lista completa comentada — aqui vai
@@ -245,6 +216,35 @@ Hoje não existe uma forma de ver, pela própria aplicação, o nome/mensagem de
 pediu para ficar anônimo — os dados estão no SQLite, mas não há CLI nem rota para
 consultá-los. É proposital: essa parte foi deixada de fora para ser desenhada com
 mais cuidado depois.
+
+## Desenvolvimento local
+
+Pra mexer no código (não necessário só pra hospedar). Requer Node.js 24+ e
+[pnpm](https://pnpm.io).
+
+```bash
+git clone https://github.com/valtlfelipe/apoia.git
+cd apoia
+pnpm install
+cp .env.example .env      # edite com seus dados (veja a seção de ENVs acima)
+pnpm db:generate           # só na primeira vez, ou após mudar lib/db/schema.ts
+pnpm db:migrate
+pnpm dev
+```
+
+Abra http://localhost:3000.
+
+Sem um `WOOVI_APP_ID` de verdade, o formulário de apoio vai falhar ao criar a
+cobrança (esperado) — mas a página, a timeline e as validações funcionam normalmente
+com dados de teste inseridos direto no SQLite. Veja [Testando sem uma conta Woovi](#testando-sem-uma-conta-woovi)
+acima.
+
+Pra buildar a imagem localmente em vez de usar a publicada (útil testando
+mudanças no `Dockerfile`):
+
+```bash
+docker compose up -d --build
+```
 
 ## Adicionando outro provedor de Pix
 
