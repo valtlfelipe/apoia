@@ -1,0 +1,50 @@
+{
+  "name": "apoia",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Self-hosted, open source page to receive Pix support for your open source work — inspired by Buy Me a Coffee, made for Brazil.",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "packageManager": "pnpm@10.12.3",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx --env-file=.env lib/db/migrate.ts",
+    "db:migrate:build": "esbuild lib/db/migrate.ts --bundle --platform=node --format=cjs --target=node22 --external:better-sqlite3 --external:node:sqlite --outfile=dist-migrate/migrate.cjs",
+    "db:studio": "drizzle-kit studio",
+    "pix:webhook": "tsx --env-file=.env scripts/register-webhook.ts",
+    "dev:webhook": "tsx --env-file=.env scripts/dev-webhook.ts",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "typecheck": "tsc --noEmit",
+    "check": "biome check . && tsc --noEmit"
+  },
+  "dependencies": {
+    "@dicebear/collection": "9.4.3",
+    "@dicebear/core": "9.4.3",
+    "better-sqlite3": "13.0.3",
+    "drizzle-orm": "0.45.2",
+    "next": "16.3.4",
+    "qrcode": "1.5.4",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.12",
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/better-sqlite3": "7.6.13",
+    "@types/node": "22.20.1",
+    "@types/qrcode": "1.5.6",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "drizzle-kit": "0.31.10",
+    "esbuild": "0.28.2",
+    "eslint-config-next": "16.3.4",
+    "tailwindcss": "4.3.3",
+    "tsx": "4.23.13",
+    "typescript": "5.9.3"
+  }
+}

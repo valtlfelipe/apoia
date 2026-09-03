@@ -1,0 +1,1 @@
+ALTER TABLE `supports` DROP COLUMN `payment_link_url`;

@@ -1,0 +1,17 @@
+services:
+  apoia:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      # Overrides whatever DATABASE_PATH is set to in .env — the container
+      # always writes to this path, which lives on the named volume below.
+      DATABASE_PATH: /data/apoia.db
+    volumes:
+      - apoia-data:/data
+    restart: unless-stopped
+
+volumes:
+  apoia-data:
