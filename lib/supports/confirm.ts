@@ -27,6 +27,7 @@ export async function confirmSupport(event: ParsedWebhookEvent): Promise<void> {
       status: event.status,
       paidAmountCents: event.status === "paid" ? (event.paidAmountCents ?? null) : null,
       paidAt: event.status === "paid" ? (event.paidAt ?? new Date()) : null,
+      endToEndId: event.status === "paid" ? (event.endToEndId ?? null) : null,
       updatedAt: new Date(),
     })
     .where(eq(supports.id, existing.id));

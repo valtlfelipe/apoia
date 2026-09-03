@@ -1,0 +1,1 @@
+ALTER TABLE `supports` ADD `end_to_end_id` text;

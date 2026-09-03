@@ -41,3 +41,21 @@ export function formatRelativeTime(date: Date): string {
 
   return relativeTimeFormatter.format(Math.round(duration), "years");
 }
+
+/** Date and time as separate short pt-BR strings, for stacking in a compact table cell. */
+export function formatDateTime(date: Date): { date: string; time: string } {
+  return {
+    date: date.toLocaleDateString("pt-BR"),
+    time: date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+  };
+}
+
+/**
+ * Shortens a long opaque id to "head...tail" for compact display — e.g. a
+ * Pix end-to-end id ("E538ceec110034531ab8a82710fea2098" → "E53...a2098").
+ * Never truncates the copy/comparison value itself, just what's shown.
+ */
+export function truncateMiddle(value: string, headLen = 3, tailLen = 5): string {
+  if (value.length <= headLen + tailLen + 3) return value;
+  return `${value.slice(0, headLen)}...${value.slice(-tailLen)}`;
+}

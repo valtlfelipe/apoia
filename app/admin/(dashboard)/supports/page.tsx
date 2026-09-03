@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { setSupportPublicAction } from "@/app/admin/(dashboard)/actions";
+import { CopyButton } from "@/components/admin/copy-button";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { formatCents } from "@/lib/format";
-import { getAdminSupportsPage } from "@/lib/supports/admin";
+import { DropdownMenu, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { formatCents, formatDateTime, truncateMiddle } from "@/lib/format";
+import { type AdminSupport, getAdminSupportsPage } from "@/lib/supports/admin";
 
 export const metadata: Metadata = { title: "Apoios" };
 
@@ -14,9 +15,89 @@ const STATUS_LABELS: Record<string, string> = {
   expired: "Expirado",
 };
 
+// Status badges get their own tint instead of the default accent-green
+// treatment — "pending"/"expired" reading as positive/confirmed at a glance
+// would be misleading in a table meant for fast scanning.
+const STATUS_BADGE_CLASSES: Record<string, string> = {
+  paid: "",
+  pending: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+  expired:
+    "border-[var(--color-text-muted)]/20 bg-[var(--color-text-muted)]/10 text-[var(--color-text-muted)]",
+};
+
 type SupportsPageProps = {
   searchParams: Promise<{ cursor?: string }>;
 };
+
+function AmountCell({ support }: { support: AdminSupport }) {
+  return (
+    <div className="space-y-1">
+      <p className="font-medium text-[var(--color-text)] tabular-nums">
+        {formatCents(support.paidAmountCents ?? support.amountCents)}
+      </p>
+      <Badge className={STATUS_BADGE_CLASSES[support.status]}>
+        {STATUS_LABELS[support.status] ?? support.status}
+      </Badge>
+    </div>
+  );
+}
+
+function SupporterCell({ support }: { support: AdminSupport }) {
+  return (
+    <div className="min-w-0 max-w-[260px] space-y-1">
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="font-medium text-[var(--color-text)]">
+          {support.displayName?.trim() || (
+            <span className="text-[var(--color-text-muted)] italic">sem nome</span>
+          )}
+        </span>
+        {!support.isPublic ? (
+          <span className="rounded-full bg-[var(--color-text-muted)]/10 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-[var(--color-text-muted)] uppercase">
+            oculto
+          </span>
+        ) : null}
+      </div>
+      {support.message ? (
+        <p
+          title={support.message}
+          className="truncate text-sm text-[var(--color-text-muted)] italic"
+        >
+          "{support.message}"
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function WhenCell({ support }: { support: AdminSupport }) {
+  const primary = formatDateTime(new Date(support.paidAt ?? support.createdAt));
+  return (
+    <div className="whitespace-nowrap">
+      <p className="text-[var(--color-text)]">
+        {primary.date} <span className="text-[var(--color-text-muted)]">{primary.time}</span>
+      </p>
+      {support.paidAt ? (
+        <p className="text-xs text-[var(--color-text-muted)]">
+          criado {formatDateTime(new Date(support.createdAt)).date}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function EndToEndIdCell({ endToEndId }: { endToEndId: string | null }) {
+  if (!endToEndId) {
+    return <span className="text-[var(--color-text-muted)]">—</span>;
+  }
+  return (
+    <div className="flex items-center gap-1">
+      <span title={endToEndId} className="font-mono text-xs text-[var(--color-text-muted)]">
+        {truncateMiddle(endToEndId)}
+      </span>
+      <CopyButton value={endToEndId} label="Copiar E2E ID" />
+    </div>
+  );
+}
 
 export default async function AdminSupportsPage({ searchParams }: SupportsPageProps) {
   const { cursor } = await searchParams;
@@ -37,44 +118,61 @@ export default async function AdminSupportsPage({ searchParams }: SupportsPagePr
           Nenhum apoio ainda.
         </p>
       ) : (
-        <ul className="divide-y divide-[var(--color-border)] overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)]">
-          {page.items.map((support) => (
-            <li key={support.id} className="flex flex-wrap items-start justify-between gap-3 p-4">
-              <div className="min-w-0 flex-1 space-y-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-medium text-[var(--color-text)]">
-                    {support.displayName?.trim() || (
-                      <span className="text-[var(--color-text-muted)] italic">sem nome</span>
+        <div className="overflow-x-auto rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)]">
+          <table className="w-full min-w-[720px] text-sm">
+            <thead>
+              <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-2)] text-left text-xs font-medium tracking-wide text-[var(--color-text-muted)] uppercase">
+                <th className="px-4 py-3 font-medium">Apoiador</th>
+                <th className="px-4 py-3 font-medium">Valor</th>
+                <th className="px-4 py-3 font-medium">Produto</th>
+                <th className="px-4 py-3 font-medium">Quando</th>
+                <th className="px-4 py-3 font-medium">E2E ID (Pix)</th>
+                <th className="px-4 py-3 font-medium">
+                  <span className="sr-only">Ações</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[var(--color-border)]">
+              {page.items.map((support) => (
+                <tr
+                  key={support.id}
+                  className="transition-colors hover:bg-[var(--color-surface-2)]/50"
+                >
+                  <td className="px-4 py-3 align-top">
+                    <SupporterCell support={support} />
+                  </td>
+                  <td className="px-4 py-3 align-top">
+                    <AmountCell support={support} />
+                  </td>
+                  <td className="px-4 py-3 align-top">
+                    {support.productSlug ? (
+                      <Badge>{support.productSlug}</Badge>
+                    ) : (
+                      <span className="text-[var(--color-text-muted)]">—</span>
                     )}
-                  </span>
-                  <Badge>{formatCents(support.paidAmountCents ?? support.amountCents)}</Badge>
-                  <Badge className={support.status !== "paid" ? "opacity-70" : undefined}>
-                    {STATUS_LABELS[support.status] ?? support.status}
-                  </Badge>
-                  {support.productSlug ? <Badge>{support.productSlug}</Badge> : null}
-                  {!support.isPublic ? (
-                    <span className="text-xs font-medium text-[var(--color-text-muted)]">
-                      oculto na timeline
-                    </span>
-                  ) : null}
-                </div>
-                {support.message ? (
-                  <p className="text-sm text-[var(--color-text-muted)] italic">
-                    "{support.message}"
-                  </p>
-                ) : null}
-                <p className="text-xs text-[var(--color-text-muted)]">
-                  {new Date(support.createdAt).toLocaleString("pt-BR")}
-                </p>
-              </div>
-              <form action={setSupportPublicAction.bind(null, support.id, !support.isPublic)}>
-                <Button type="submit" variant="secondary" className="px-3 py-1.5 text-xs">
-                  {support.isPublic ? "Ocultar da timeline" : "Reexibir na timeline"}
-                </Button>
-              </form>
-            </li>
-          ))}
-        </ul>
+                  </td>
+                  <td className="px-4 py-3 align-top">
+                    <WhenCell support={support} />
+                  </td>
+                  <td className="px-4 py-3 align-top">
+                    <EndToEndIdCell endToEndId={support.endToEndId} />
+                  </td>
+                  <td className="px-4 py-3 align-top">
+                    <DropdownMenu label="Ações">
+                      <form
+                        action={setSupportPublicAction.bind(null, support.id, !support.isPublic)}
+                      >
+                        <DropdownMenuItem>
+                          {support.isPublic ? "Ocultar da timeline" : "Reexibir na timeline"}
+                        </DropdownMenuItem>
+                      </form>
+                    </DropdownMenu>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {page.nextCursor ? (

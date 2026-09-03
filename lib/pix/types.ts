@@ -21,6 +21,8 @@ export type ParsedWebhookEvent = {
   status: SupportStatus;
   paidAmountCents?: number;
   paidAt?: Date;
+  /** The Pix network's end-to-end id for the settled transaction, when available. */
+  endToEndId?: string;
 };
 
 /**

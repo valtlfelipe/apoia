@@ -6,7 +6,8 @@ Todas as mudanças relevantes serão registradas aqui. O formato segue Keep a Ch
 
 ### Added
 
-- Painel `/admin` opcional (desligado por padrão), com login via Google usando [shoo.dev](https://shoo.dev): cadastro de produtos (criar, editar, ativar/desativar, excluir), configurações de identidade do criador (nome, nome curto, tagline, avatar, links) e do formulário de apoio (valores sugeridos, mínimo/máximo, checkboxes da timeline, estilo do avatar, validade da cobrança), e uma lista de apoios com nome e mensagem reais — inclusive de quem pediu para ficar anônimo na timeline pública — com um botão para ocultar (ou devolver) alguém da vitrine sem apagar o dado. Ligado por `APOIA_ADMIN_EMAIL` + `APOIA_ADMIN_SECRET`.
+- Painel `/admin` opcional (desligado por padrão), com login via Google usando [shoo.dev](https://shoo.dev): cadastro de produtos (criar, editar, ativar/desativar, excluir), configurações de identidade do criador (nome, nome curto, tagline, avatar, links) e do formulário de apoio (valores sugeridos, mínimo/máximo, checkboxes da timeline, estilo do avatar, validade da cobrança), e uma tabela de apoios com nome e mensagem reais — inclusive de quem pediu para ficar anônimo na timeline pública — com um botão para ocultar (ou devolver) alguém da vitrine sem apagar o dado. Ligado por `APOIA_ADMIN_EMAIL` + `APOIA_ADMIN_SECRET`.
+- Apoios agora guardam o end-to-end id (E2E ID) do Pix recebido via webhook — visível na tabela de `/admin/apoios`, com botão de copiar. Só o webhook consegue capturá-lo (a Woovi não devolve esse campo na consulta de status usada pelo polling de reforço), então fica em branco pros raros casos confirmados só por polling.
 
 ### Changed
 

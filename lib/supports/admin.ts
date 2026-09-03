@@ -24,6 +24,7 @@ export type AdminSupport = {
   amountCents: number;
   paidAmountCents: number | null;
   productSlug: string | null;
+  endToEndId: string | null;
   createdAt: string;
   paidAt: string | null;
 };
@@ -73,6 +74,7 @@ export async function getAdminSupportsPage(
       amountCents: supports.amountCents,
       paidAmountCents: supports.paidAmountCents,
       productSlug: supports.productSlug,
+      endToEndId: supports.endToEndId,
       createdAt: supports.createdAt,
       paidAt: supports.paidAt,
     })

@@ -199,6 +199,7 @@ function parseWebhook(rawBody: string): ParsedWebhookEvent | null {
     status: mapChargeStatus(payload.charge.status),
     paidAmountCents: payload.charge.status === "COMPLETED" ? payload.charge.value : undefined,
     paidAt: payload.charge.paidAt ? new Date(payload.charge.paidAt) : undefined,
+    endToEndId: payload.charge.status === "COMPLETED" ? payload.pix?.endToEndId : undefined,
   };
 }
 

@@ -102,6 +102,11 @@ export const supports = sqliteTable(
 
     amountCents: integer("amount_cents").notNull(),
     paidAmountCents: integer("paid_amount_cents"),
+    // The Pix network's end-to-end id (e.g. "E538ceec110034531ab8a82710fea2098")
+    // — set once, from the webhook payload, when a charge is confirmed. Not
+    // PII (it identifies the transaction on the Bacen/SPI rail, not the
+    // payer), so — unlike payer name/taxID — it's fine to keep as-is.
+    endToEndId: text("end_to_end_id"),
 
     displayName: text("display_name"),
     message: text("message"),

@@ -36,6 +36,13 @@
       "when": 1788468095413,
       "tag": "0004_open_mercury",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1788469364043,
+      "tag": "0005_tan_captain_universe",
+      "breakpoints": true
     }
   ]
 }

@@ -62,6 +62,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         .where(eq(supports.id, support.id));
 
       if (status !== "pending") {
+        // No endToEndId here: Woovi's GET /charge/{id} (what getChargeStatus
+        // calls) doesn't return it — confirmed directly against the live
+        // API. It only appears in the webhook payload, or in GET
+        // /transaction, a paginated list with no server-side filter by
+        // correlationId (tried it — the API silently ignores that query
+        // param). Paging through the whole account's transactions on every
+        // polling fallback confirmation isn't worth it for what's meant to
+        // be a lightweight reinforcement path — the webhook (confirmSupport
+        // via the real event) is the one that reliably captures it.
         await confirmSupport({ event: "poll", correlationId: support.correlationId, status });
       }
 
