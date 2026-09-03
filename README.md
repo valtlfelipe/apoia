@@ -7,6 +7,14 @@ focada no público brasileiro: **só Pix**, sem coletar e-mail, CPF ou telefone.
 Self-hosted, open source, configurável só por variáveis de ambiente. Sem painel de
 admin, sem login — tudo em uma página só.
 
+[![Release](https://github.com/valtlfelipe/apoia/actions/workflows/release.yml/badge.svg)](https://github.com/valtlfelipe/apoia/actions/workflows/release.yml)
+[![Release](https://img.shields.io/github/v/release/valtlfelipe/apoia)](https://github.com/valtlfelipe/apoia/releases)
+[![Licença](https://img.shields.io/badge/licença-AGPL--3.0-blue.svg)](LICENSE)
+
+![Página de apoio via Pix com timeline pública de apoiadores fictícios](docs/images/demo.png)
+
+*Nome e apoiadores de demonstração, com dados fictícios.*
+
 ## O que ela faz
 
 - **Uma página, com timeline pública** de apoios, no estilo Buy Me a Coffee.
@@ -28,11 +36,69 @@ admin, sem login — tudo em uma página só.
 Next.js 16 (App Router) · React 19 · Tailwind CSS v4 · Drizzle ORM · SQLite
 (`better-sqlite3`) · Zod · TypeScript.
 
-## Rodando localmente
+## Deploy (self-host)
 
-Requer Node.js 24+ e [pnpm](https://pnpm.io).
+Não precisa clonar o repositório nem instalar Node — só Docker. A cada release,
+o workflow em `.github/workflows/release.yml` builda a imagem (`linux/amd64` e
+`linux/arm64`) e publica no GitHub Container Registry.
+
+1. Crie uma pasta pra sua instância e, dentro dela, um `docker-compose.yml`:
+
+   ```yaml
+   services:
+     apoia:
+       image: ghcr.io/valtlfelipe/apoia:latest
+       ports:
+         - "3000:3000"
+       env_file:
+         - .env
+       environment:
+         DATABASE_PATH: /data/apoia.db
+       volumes:
+         - apoia-data:/data
+       restart: unless-stopped
+
+   volumes:
+     apoia-data:
+   ```
+
+   (Rodando seu próprio fork? Troque `valtlfelipe/apoia` pelo seu — o release
+   publica automaticamente em `ghcr.io/<seu-usuário>/<seu-fork>`.)
+
+2. Crie o `.env` na mesma pasta, com base na seção [Configuração](#configuração-variáveis-de-ambiente)
+   abaixo — no mínimo `APOIA_CREATOR_NAME`, `APOIA_SITE_URL` e `WOOVI_APP_ID`.
+
+3. Suba:
+
+   ```bash
+   docker compose pull
+   docker compose up -d
+   ```
+
+As migrations do banco rodam automaticamente a cada boot do container, antes do
+servidor subir (veja `docker-entrypoint.sh`) — não tem passo manual de migration
+no deploy. Os dados ficam no volume nomeado `apoia-data`, sobrevivem a updates e
+restarts.
+
+Pra atualizar depois de uma nova release:
 
 ```bash
+docker compose pull
+docker compose up -d
+```
+
+Tags disponíveis: `latest` e `<major>.<minor>.<patch>` (ex.: `0.1.0`) a partir de
+cada release marcada com uma tag `vX.Y.Z`; `edge` fica disponível quando o
+workflow é disparado manualmente a partir da `main`.
+
+## Desenvolvimento local
+
+Pra mexer no código (não necessário só pra hospedar). Requer Node.js 24+ e
+[pnpm](https://pnpm.io).
+
+```bash
+git clone https://github.com/valtlfelipe/apoia.git
+cd apoia
 pnpm install
 cp .env.example .env      # edite com seus dados (veja a seção de ENVs abaixo)
 pnpm db:generate           # só na primeira vez, ou após mudar lib/db/schema.ts
@@ -47,18 +113,8 @@ cobrança (esperado) — mas a página, a timeline e as validações funcionam n
 com dados de teste inseridos direto no SQLite. Veja [Testando sem uma conta Woovi](#testando-sem-uma-conta-woovi)
 abaixo.
 
-## Deploy com Docker
-
-```bash
-cp .env.example .env      # edite com seus dados
-docker compose up -d --build
-```
-
-O `docker-entrypoint.sh` roda as migrations automaticamente a cada boot, antes de
-subir o servidor. Os dados ficam no volume nomeado `apoia-data` (mapeado para
-`/data` dentro do container) — sobrevivem a rebuilds e restarts.
-
-Para atualizar depois de um `git pull`:
+Pra buildar a imagem localmente em vez de usar a publicada (útil testando
+mudanças no `Dockerfile`):
 
 ```bash
 docker compose up -d --build
@@ -127,14 +183,24 @@ fixado em `/data/apoia.db`, dentro do volume).
    *Applications* no painel.
 2. Coloque em `WOOVI_APP_ID` no `.env`.
 3. Depois do deploy (com `APOIA_SITE_URL` apontando para uma URL pública HTTPS),
-   registre o webhook:
+   registre o webhook. Sem o repositório clonado, faça direto via `curl` —
+   exporte suas variáveis e rode:
 
    ```bash
-   pnpm pix:webhook
+   export WOOVI_APP_ID="..."                        # o mesmo do .env
+   export WOOVI_API_URL="https://api.woovi.com/api/v1"  # sandbox: api.woovi-sandbox.com
+   export APOIA_SITE_URL="https://seu-dominio.com"
+
+   for event in OPENPIX:CHARGE_COMPLETED OPENPIX:CHARGE_EXPIRED; do
+     curl -X POST "$WOOVI_API_URL/webhook" \
+       -H "Authorization: $WOOVI_APP_ID" \
+       -H "Content-Type: application/json" \
+       -d "{\"name\":\"apoia — $event\",\"event\":\"$event\",\"url\":\"$APOIA_SITE_URL/api/webhooks/woovi\",\"isActive\":true}"
+   done
    ```
 
-   Isso cadastra `OPENPIX:CHARGE_COMPLETED` e `OPENPIX:CHARGE_EXPIRED` apontando
-   para `<APOIA_SITE_URL>/api/webhooks/woovi`.
+   Com o repositório clonado (desenvolvimento local), `pnpm pix:webhook` faz o
+   mesmo a partir do `.env`.
 
 O webhook é a fonte de verdade para confirmar pagamento — a página também faz
 *polling* de status a cada poucos segundos como reforço, útil em ambientes onde o
@@ -202,6 +268,24 @@ nativo do Node (`node:sqlite` — zero dependências nativas, mas ainda experime
 troque a implementação em `lib/db/client.ts`: é o único lugar que fala diretamente
 com o driver — o resto da aplicação só usa o query builder do Drizzle.
 
+## Publicando uma release
+
+Pra quem mantém o projeto (não necessário só pra hospedar):
+
+1. Mova as mudanças relevantes de `[Unreleased]` para uma nova seção no
+   [`CHANGELOG.md`](CHANGELOG.md), no formato `## [X.Y.Z] - AAAA-MM-DD`.
+2. Atualize `"version"` em `package.json` pro mesmo número.
+3. Marque e envie a tag:
+
+   ```bash
+   git tag vX.Y.Z
+   git push origin main vX.Y.Z
+   ```
+
+O workflow `.github/workflows/release.yml` builda a imagem multi-arch, publica
+no GHCR com as tags `latest`, `X.Y.Z`, `X.Y` e `X`, e cria a GitHub Release com
+as notas tiradas direto da seção correspondente do changelog.
+
 ## Scripts
 
 | Comando | O que faz |
@@ -217,4 +301,4 @@ com o driver — o resto da aplicação só usa o query builder do Drizzle.
 
 ## Licença
 
-MIT.
+AGPL-3.0-only.

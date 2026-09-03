@@ -1,5 +1,11 @@
 services:
   apoia:
+    # Pulls the image published by .github/workflows/release.yml — no local
+    # clone or build needed. Override APOIA_IMAGE in .env if you're running
+    # your own fork (it publishes to its own ghcr.io namespace once you push
+    # a vX.Y.Z tag). Working on the code itself? `docker compose up --build`
+    # builds from ./Dockerfile instead and tags it with this same name.
+    image: ${APOIA_IMAGE:-ghcr.io/valtlfelipe/apoia:latest}
     build: .
     ports:
       - "3000:3000"
