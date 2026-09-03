@@ -4,6 +4,7 @@ import { SupportForm } from "@/components/support-form";
 import { Timeline } from "@/components/timeline";
 import { appConfig } from "@/lib/config/config";
 import { getCreator } from "@/lib/config/creator";
+import { getSupportSettings } from "@/lib/config/support";
 
 // The timeline shows live data (new supporters appear as payments confirm),
 // so this page is rendered per-request rather than statically generated —
@@ -12,6 +13,7 @@ export const dynamic = "force-dynamic";
 
 export default function HomePage() {
   const creator = getCreator();
+  const supportSettings = getSupportSettings();
 
   return (
     <main className="mx-auto flex max-w-[1120px] flex-col gap-12 px-6 py-14 sm:py-20">
@@ -26,10 +28,10 @@ export default function HomePage() {
             Contribua com qualquer valor, direto no Pix, sem cadastro. Agradeço desde já.
           </p>
           <SupportForm
-            presets={appConfig.amounts.presets}
-            minCents={appConfig.amounts.minCents}
-            maxCents={appConfig.amounts.maxCents}
-            defaultPublic={appConfig.timeline.defaultPublic}
+            presets={supportSettings.amountPresets}
+            minCents={supportSettings.minAmountCents}
+            maxCents={supportSettings.maxAmountCents}
+            defaultPublic={supportSettings.defaultPublic}
             thankYouMessage={appConfig.thankYouMessage}
           />
         </div>

@@ -1,17 +1,28 @@
 import * as collection from "@dicebear/collection";
 import { createAvatar } from "@dicebear/core";
-import { appConfig } from "@/lib/config/config";
+import { getSupportSettings } from "@/lib/config/support";
 
 type StyleModule = Parameters<typeof createAvatar>[0];
 
 const styles = collection as unknown as Record<string, StyleModule>;
 
+/**
+ * Every style name @dicebear/collection actually exports at this pinned
+ * version — used both to resolve a style below and, by
+ * lib/settings/schema.ts, to reject a typo'd style name at admin-save time
+ * instead of only discovering it here, mid-avatar-generation.
+ */
+export const AVATAR_STYLES: string[] = Object.keys(styles);
+
 function resolveStyle(): StyleModule {
-  const style = styles[appConfig.avatarStyle];
+  const avatarStyle = getSupportSettings().avatarStyle;
+  const style = styles[avatarStyle];
   if (!style) {
-    const available = Object.keys(styles).join(", ");
+    // Shouldn't happen in practice — the admin form validates against
+    // AVATAR_STYLES before this is ever saved — but stay defensive in case
+    // the row was edited some other way (direct SQL, an old backup, etc).
     throw new Error(
-      `Unknown APOIA_AVATAR_STYLE "${appConfig.avatarStyle}". Available styles: ${available}`,
+      `Unknown avatar style "${avatarStyle}". Available styles: ${AVATAR_STYLES.join(", ")}`,
     );
   }
   return style;

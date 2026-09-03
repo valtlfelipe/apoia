@@ -7,13 +7,14 @@ import type {
   CreatorSettingsFormState,
   DeleteProductState,
   ProductFormState,
+  SupportSettingsFormState,
 } from "@/app/admin/(dashboard)/action-state";
 import { requireAdmin } from "@/lib/auth/admin";
 import { getProduct } from "@/lib/config/products";
 import { createProductRow, deleteProductRow, updateProductRow } from "@/lib/products/repo";
 import { productInputSchema, productUpdateSchema } from "@/lib/products/schema";
-import { updateCreatorSettings } from "@/lib/settings/repo";
-import { creatorSettingsSchema } from "@/lib/settings/schema";
+import { updateCreatorSettings, updateSupportSettings } from "@/lib/settings/repo";
+import { creatorSettingsSchema, supportSettingsSchema } from "@/lib/settings/schema";
 import { setSupportPublic } from "@/lib/supports/admin";
 
 function productFormValues(formData: FormData) {
@@ -134,6 +135,45 @@ export async function updateCreatorSettingsAction(
   // every /<slug> product page does too — revalidate all three rather than
   // trying to enumerate every product slug.
   revalidatePath("/", "layout");
+  revalidatePath("/");
+  revalidatePath("/[product]", "page");
+
+  return { error: null };
+}
+
+function supportSettingsFormValues(formData: FormData) {
+  // amountPresets/minAmountCents/maxAmountCents carry raw text here (a CSV
+  // of cents, and two reais-formatted strings like "1,00") — the schema's
+  // csvCents/reaisToCents transforms do the actual parsing. See
+  // lib/settings/schema.ts.
+  return {
+    amountPresets: String(formData.get("amountPresets") ?? ""),
+    minAmountCents: String(formData.get("minAmountCents") ?? ""),
+    maxAmountCents: String(formData.get("maxAmountCents") ?? ""),
+    defaultPublic: formData.get("defaultPublic") === "on",
+    showTotalCount: formData.get("showTotalCount") === "on",
+    showTotalAmount: formData.get("showTotalAmount") === "on",
+    avatarStyle: String(formData.get("avatarStyle") ?? ""),
+    chargeExpiresInSeconds: String(formData.get("chargeExpiresInSeconds") ?? ""),
+  };
+}
+
+export async function updateSupportSettingsAction(
+  _prevState: SupportSettingsFormState,
+  formData: FormData,
+): Promise<SupportSettingsFormState> {
+  await requireAdmin();
+
+  const parsed = supportSettingsSchema.safeParse(supportSettingsFormValues(formData));
+  if (!parsed.success) {
+    return { error: "Dados inválidos.", fieldErrors: z.flattenError(parsed.error).fieldErrors };
+  }
+
+  updateSupportSettings(parsed.data);
+
+  // Nothing here feeds metadata, so unlike updateCreatorSettingsAction this
+  // doesn't need the root layout revalidated — just the pages that render
+  // SupportForm/StatsBar.
   revalidatePath("/");
   revalidatePath("/[product]", "page");
 

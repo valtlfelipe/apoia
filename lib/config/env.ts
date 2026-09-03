@@ -19,37 +19,15 @@ const intFromString = (defaultValue: number) =>
     .transform((v) => (v === undefined || v === "" ? defaultValue : Number(v)))
     .pipe(z.number().int());
 
-const csvInts = (defaultValue: number[]) =>
-  z
-    .string()
-    .optional()
-    .transform((v) => {
-      if (v === undefined || v.trim() === "") return defaultValue;
-      return v
-        .split(",")
-        .map((s) => Number(s.trim()))
-        .filter((n) => Number.isFinite(n));
-    })
-    .pipe(z.array(z.number().int().positive()).min(1));
-
 const envSchema = z
   .object({
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 
     APOIA_SITE_URL: z.string().url(),
 
-    // --- Support form ---
-    APOIA_AMOUNT_PRESETS: csvInts([500, 1500, 2500]),
-    APOIA_MIN_AMOUNT_CENTS: intFromString(100),
-    APOIA_MAX_AMOUNT_CENTS: intFromString(1_000_000),
-    APOIA_DEFAULT_PUBLIC: boolFromString(true),
-    APOIA_SHOW_TOTAL_COUNT: boolFromString(true),
-    APOIA_SHOW_TOTAL_AMOUNT: boolFromString(false),
-    APOIA_AVATAR_STYLE: z.string().min(1).default("notionists"),
     // Shown in the success dialog once a payment is confirmed. Accepts an
     // {amount} placeholder.
     APOIA_THANK_YOU_MESSAGE: z.string().max(300).optional(),
-    APOIA_CHARGE_EXPIRES_IN: intFromString(1800),
     APOIA_RATE_LIMIT_PER_MINUTE: intFromString(5),
     APOIA_DEV_SKIP_WEBHOOK_SIGNATURE: boolFromString(false),
 
@@ -74,21 +52,6 @@ const envSchema = z
     APOIA_ADMIN_SECRET: z.string().min(32).optional(),
   })
   .superRefine((env, ctx) => {
-    if (env.APOIA_MIN_AMOUNT_CENTS < 100) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["APOIA_MIN_AMOUNT_CENTS"],
-        message: "minimum amount must be at least 100 cents (R$ 1,00)",
-      });
-    }
-    if (env.APOIA_MAX_AMOUNT_CENTS <= env.APOIA_MIN_AMOUNT_CENTS) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["APOIA_MAX_AMOUNT_CENTS"],
-        message: "APOIA_MAX_AMOUNT_CENTS must be greater than APOIA_MIN_AMOUNT_CENTS",
-      });
-    }
-
     if (Boolean(env.APOIA_ADMIN_EMAIL) !== Boolean(env.APOIA_ADMIN_SECRET)) {
       ctx.addIssue({
         code: "custom",
@@ -148,6 +111,14 @@ function loadEnv(): Env {
     APOIA_CREATOR_TAGLINE: "creator identity is now managed at /admin/settings",
     APOIA_CREATOR_AVATAR_URL: "creator identity is now managed at /admin/settings",
     APOIA_CREATOR_LINKS: "creator identity is now managed at /admin/settings",
+    APOIA_AMOUNT_PRESETS: "support-form config is now managed at /admin/settings",
+    APOIA_MIN_AMOUNT_CENTS: "support-form config is now managed at /admin/settings",
+    APOIA_MAX_AMOUNT_CENTS: "support-form config is now managed at /admin/settings",
+    APOIA_DEFAULT_PUBLIC: "support-form config is now managed at /admin/settings",
+    APOIA_SHOW_TOTAL_COUNT: "support-form config is now managed at /admin/settings",
+    APOIA_SHOW_TOTAL_AMOUNT: "support-form config is now managed at /admin/settings",
+    APOIA_AVATAR_STYLE: "support-form config is now managed at /admin/settings",
+    APOIA_CHARGE_EXPIRES_IN: "support-form config is now managed at /admin/settings",
   };
   const stillSet = Object.keys(retiredVars).filter((key) => process.env[key] !== undefined);
   if (stillSet.length > 0) {

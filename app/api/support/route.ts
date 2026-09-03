@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "JSON inválido." }, { status: 400 });
   }
 
-  const parsed = createSupportSchema.safeParse(body);
+  const parsed = createSupportSchema().safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Dados inválidos.", issues: z.treeifyError(parsed.error) },

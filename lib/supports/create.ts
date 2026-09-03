@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import QRCode from "qrcode";
-import { appConfig } from "@/lib/config/config";
 import { getCreator } from "@/lib/config/creator";
 import { getProduct } from "@/lib/config/products";
+import { getSupportSettings } from "@/lib/config/support";
 import { db } from "@/lib/db/client";
 import { supports } from "@/lib/db/schema";
 import { getPixProvider } from "@/lib/pix";
@@ -50,7 +50,7 @@ export async function createSupport(input: CreateSupportInput): Promise<CreateSu
       correlationId,
       amountCents: input.amountCents,
       comment: buildChargeComment(input.productSlug),
-      expiresInSeconds: appConfig.chargeExpiresInSeconds,
+      expiresInSeconds: getSupportSettings().chargeExpiresInSeconds,
     });
 
     // Always render the QR ourselves from the brCode rather than trust

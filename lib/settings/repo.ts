@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { type NewSettingsRow, type SettingsRow, settings } from "@/lib/db/schema";
-import type { CreatorSettingsInput } from "@/lib/settings/schema";
+import type { CreatorSettingsInput, SupportSettingsInput } from "@/lib/settings/schema";
 
 /**
  * Module-scope cache of the single settings row, same rationale as
@@ -41,6 +41,32 @@ export function updateCreatorSettings(input: CreatorSettingsInput): SettingsRow 
     creatorTagline: input.tagline ?? null,
     creatorAvatarUrl: input.avatarUrl ?? null,
     creatorLinks: input.links,
+    updatedAt: new Date(),
+  };
+  db.insert(settings).values(values).onConflictDoUpdate({ target: settings.id, set: values }).run();
+  invalidateSettingsCache();
+  const row = loadSettings();
+  if (!row) throw new Error("failed to read back settings after upsert");
+  return row;
+}
+
+/**
+ * Upserts only the support-form columns — same shape as
+ * updateCreatorSettings, and just as safe to call independently: `values`
+ * here never mentions the creator_* columns, so onConflictDoUpdate's `set`
+ * leaves them untouched on an existing row.
+ */
+export function updateSupportSettings(input: SupportSettingsInput): SettingsRow {
+  const values: NewSettingsRow = {
+    id: 1,
+    amountPresets: input.amountPresets,
+    minAmountCents: input.minAmountCents,
+    maxAmountCents: input.maxAmountCents,
+    defaultPublic: input.defaultPublic,
+    showTotalCount: input.showTotalCount,
+    showTotalAmount: input.showTotalAmount,
+    avatarStyle: input.avatarStyle,
+    chargeExpiresInSeconds: input.chargeExpiresInSeconds,
     updatedAt: new Date(),
   };
   db.insert(settings).values(values).onConflictDoUpdate({ target: settings.id, set: values }).run();

@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { appConfig } from "@/lib/config/config";
 import { getProduct } from "@/lib/config/products";
+import { getSupportSettings } from "@/lib/config/support";
 
 // Control characters (C0 + DEL) and common zero-width / invisible formatting
 // characters, expressed as \u escapes so no literal non-printable byte ever
@@ -14,36 +14,52 @@ export function sanitizeText(input: string): string {
   return input.replace(HIDDEN_CHARS_PATTERN, "").replace(/\s+/g, " ").trim();
 }
 
-export const createSupportSchema = z
-  .object({
-    amountCents: z
-      .number()
-      .int("o valor deve ser um número inteiro de centavos")
-      .min(appConfig.amounts.minCents, `o valor mínimo é ${appConfig.amounts.minCents / 100}`)
-      .max(appConfig.amounts.maxCents, `o valor máximo é ${appConfig.amounts.maxCents / 100}`),
-    displayName: z
-      .string()
-      .max(60, "o nome deve ter no máximo 60 caracteres")
-      .transform(sanitizeText)
-      .optional(),
-    message: z
-      .string()
-      .max(280, "a mensagem deve ter no máximo 280 caracteres")
-      .transform(sanitizeText)
-      .optional(),
-    isPublic: z.boolean().default(appConfig.timeline.defaultPublic),
-    productSlug: z
-      .string()
-      .max(60)
-      .optional()
-      .refine((slug) => slug === undefined || getProduct(slug)?.isActive === true, {
-        message: "produto desconhecido",
-      }),
-  })
-  .transform((data) => ({
-    ...data,
-    displayName: data.displayName && data.displayName.length > 0 ? data.displayName : undefined,
-    message: data.message && data.message.length > 0 ? data.message : undefined,
-  }));
+/**
+ * A function, not a module-level const: minCents/maxCents/defaultPublic now
+ * come from the database (editable at /admin/settings), and a schema built
+ * once at import time would keep validating against whatever those were the
+ * moment this module first loaded — never picking up a later edit, even
+ * with revalidatePath, until the process restarts. Called fresh on every
+ * request (app/api/support/route.ts calls createSupportSchema().safeParse(...)).
+ *
+ * The productSlug .refine() below doesn't have this problem — refine
+ * callbacks run per safeParse() call, not at schema-construction time — and
+ * is the precedent this whole function follows.
+ */
+export function createSupportSchema() {
+  const settings = getSupportSettings();
 
-export type CreateSupportInput = z.infer<typeof createSupportSchema>;
+  return z
+    .object({
+      amountCents: z
+        .number()
+        .int("o valor deve ser um número inteiro de centavos")
+        .min(settings.minAmountCents, `o valor mínimo é ${settings.minAmountCents / 100}`)
+        .max(settings.maxAmountCents, `o valor máximo é ${settings.maxAmountCents / 100}`),
+      displayName: z
+        .string()
+        .max(60, "o nome deve ter no máximo 60 caracteres")
+        .transform(sanitizeText)
+        .optional(),
+      message: z
+        .string()
+        .max(280, "a mensagem deve ter no máximo 280 caracteres")
+        .transform(sanitizeText)
+        .optional(),
+      isPublic: z.boolean().default(settings.defaultPublic),
+      productSlug: z
+        .string()
+        .max(60)
+        .optional()
+        .refine((slug) => slug === undefined || getProduct(slug)?.isActive === true, {
+          message: "produto desconhecido",
+        }),
+    })
+    .transform((data) => ({
+      ...data,
+      displayName: data.displayName && data.displayName.length > 0 ? data.displayName : undefined,
+      message: data.message && data.message.length > 0 ? data.message : undefined,
+    }));
+}
+
+export type CreateSupportInput = z.infer<ReturnType<typeof createSupportSchema>>;

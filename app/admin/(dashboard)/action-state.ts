@@ -19,3 +19,10 @@ export type CreatorSettingsFormState = {
 };
 
 export const initialCreatorSettingsFormState: CreatorSettingsFormState = { error: null };
+
+export type SupportSettingsFormState = {
+  error: string | null;
+  fieldErrors?: Record<string, string[] | undefined>;
+};
+
+export const initialSupportSettingsFormState: SupportSettingsFormState = { error: null };

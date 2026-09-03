@@ -110,24 +110,18 @@ o resumo:
 |---|---|---|
 | `APOIA_SITE_URL` | sim | URL pública desta instância (usada em metadata, no registro do webhook e como origin do login OAuth). |
 
-> **Criador** (nome, avatar, tagline, links) e **produtos** (`/financeiro`, headline,
-> etc.) não são mais variáveis de ambiente — configure-os pelo [`/admin`](#admin).
-> Sem admin habilitado, a instância roda com os padrões do código: nome "Apoia",
-> avatar gerado, sem tagline nem links, só a página raiz com apoio genérico.
+> **Criador** (nome, avatar, tagline, links), **produtos** (`/financeiro`, headline,
+> etc.) e **formulário de apoio** (valores, checkboxes da timeline, estilo do
+> avatar, validade da cobrança) não são mais variáveis de ambiente — configure-os
+> pelo [`/admin`](#admin). Sem admin habilitado, a instância roda com os padrões do
+> código: nome "Apoia", avatar gerado, sem tagline nem links, só a página raiz com
+> apoio genérico, valores sugeridos de R$5/15/25, mínimo R$1, máximo R$10.000.
 
 ### Formulário de apoio
 
 | Variável | Padrão | Descrição |
 |---|---|---|
-| `APOIA_AMOUNT_PRESETS` | `500,1500,2500` | Valores sugeridos, em centavos. |
-| `APOIA_MIN_AMOUNT_CENTS` | `100` | Mínimo por apoio (R$ 1,00). |
-| `APOIA_MAX_AMOUNT_CENTS` | `1000000` | Máximo por apoio. |
-| `APOIA_DEFAULT_PUBLIC` | `true` | Se o checkbox "aparecer na timeline" começa marcado. |
-| `APOIA_SHOW_TOTAL_COUNT` | `true` | Mostrar o número de apoios na timeline. |
-| `APOIA_SHOW_TOTAL_AMOUNT` | `false` | Mostrar a soma total arrecadada — decisão de quem hospeda. |
-| `APOIA_AVATAR_STYLE` | `notionists` | Qualquer estilo do [`@dicebear/collection`](https://www.dicebear.com/styles/). |
 | `APOIA_THANK_YOU_MESSAGE` | *(padrão em pt-BR)* | Mensagem no modal de sucesso após o pagamento confirmar. Aceita `{amount}`. |
-| `APOIA_CHARGE_EXPIRES_IN` | `1800` | Validade da cobrança Pix, em segundos. |
 | `APOIA_RATE_LIMIT_PER_MINUTE` | `5` | Limite de criação de cobranças por IP. |
 
 ### Pix
@@ -207,8 +201,10 @@ Desligado por padrão — sem `APOIA_ADMIN_EMAIL`/`APOIA_ADMIN_SECRET`, `/admin`
 existe (404 em qualquer rota sob ele), e a instância roda com os padrões do código
 (nome "Apoia", sem produtos). Habilitado, dá acesso a:
 
-- **Configurações**: identidade do criador — nome, nome curto (usado nas headlines),
-  tagline, URL do avatar e os links mostrados no topo da página.
+- **Configurações**: identidade do criador (nome, nome curto usado nas headlines,
+  tagline, URL do avatar, links) e o formulário de apoio (valores sugeridos,
+  mínimo/máximo, os três checkboxes da timeline, estilo do avatar gerado, validade
+  da cobrança Pix).
 - **Produtos**: criar, editar, ativar/desativar e (se ainda não tiver apoios)
   excluir as páginas `/<slug>`.
 - **Apoios**: uma lista com nome e mensagem **reais**, mesmo de quem marcou

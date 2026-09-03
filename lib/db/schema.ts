@@ -7,9 +7,12 @@ export type CreatorLink = { label: string; url: string };
  * Single-row table (id is always 1, enforced by the CHECK constraint)
  * holding config that used to live in ENV and is now editable at
  * /admin/settings. Every content column is nullable — null means "not
- * configured", and the default lives in code (lib/config/creator.ts), not
- * in the database. Meant to grow with future settings migrations: new
- * columns on this same row, not new tables.
+ * configured", and the default lives in code (lib/config/creator.ts,
+ * lib/config/support.ts), not in the database. Grows with future settings
+ * migrations: new columns on this same row, not new tables. Each group of
+ * columns is written by its own updateXSettings() in lib/settings/repo.ts,
+ * via onConflictDoUpdate targeting only its own columns — groups never
+ * clobber each other on save.
  */
 export const settings = sqliteTable(
   "settings",
@@ -22,6 +25,16 @@ export const settings = sqliteTable(
     creatorTagline: text("creator_tagline"),
     creatorAvatarUrl: text("creator_avatar_url"),
     creatorLinks: text("creator_links", { mode: "json" }).$type<CreatorLink[]>(),
+
+    // --- Support form (see lib/config/support.ts for the defaults applied when these are null) ---
+    amountPresets: text("amount_presets", { mode: "json" }).$type<number[]>(),
+    minAmountCents: integer("min_amount_cents"),
+    maxAmountCents: integer("max_amount_cents"),
+    defaultPublic: integer("default_public", { mode: "boolean" }),
+    showTotalCount: integer("show_total_count", { mode: "boolean" }),
+    showTotalAmount: integer("show_total_amount", { mode: "boolean" }),
+    avatarStyle: text("avatar_style"),
+    chargeExpiresInSeconds: integer("charge_expires_in_seconds"),
 
     updatedAt: integer("updated_at", { mode: "timestamp_ms" })
       .notNull()

@@ -1,6 +1,6 @@
 import { StatsBar } from "@/components/stats-bar";
 import { TimelineList } from "@/components/timeline-list";
-import { appConfig } from "@/lib/config/config";
+import { getSupportSettings } from "@/lib/config/support";
 import { getTimelineAggregates, getTimelinePage } from "@/lib/supports/queries";
 
 export async function Timeline({ productSlug }: { productSlug?: string }) {
@@ -8,6 +8,7 @@ export async function Timeline({ productSlug }: { productSlug?: string }) {
     getTimelinePage({ productSlug }),
     getTimelineAggregates(productSlug),
   ]);
+  const supportSettings = getSupportSettings();
 
   return (
     <section className="space-y-4">
@@ -16,8 +17,8 @@ export async function Timeline({ productSlug }: { productSlug?: string }) {
         <StatsBar
           totalCount={aggregates.totalCount}
           totalAmountCents={aggregates.totalAmountCents}
-          showCount={appConfig.timeline.showTotalCount}
-          showAmount={appConfig.timeline.showTotalAmount}
+          showCount={supportSettings.showTotalCount}
+          showAmount={supportSettings.showTotalAmount}
         />
       </div>
       <TimelineList

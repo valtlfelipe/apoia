@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { AVATAR_STYLES } from "@/lib/avatar";
+import { parseReaisToCents } from "@/lib/format";
 import { sanitizeText } from "@/lib/validation";
 
 export const creatorLinkSchema = z.object({
@@ -40,3 +42,82 @@ export const creatorSettingsSchema = z.object({
 });
 
 export type CreatorSettingsInput = z.infer<typeof creatorSettingsSchema>;
+
+/** A single reais-formatted field (e.g. "1,00" or "1.00"), converted to an integer cents value. */
+const reaisToCents = z.string().transform((v, ctx) => {
+  const cents = parseReaisToCents(v);
+  if (cents === null) {
+    ctx.addIssue({ code: "custom", message: "informe um valor válido" });
+    return z.NEVER;
+  }
+  return cents;
+});
+
+/** A comma-separated list of cent amounts (e.g. "500,1500,2500") — kept in cents, not reais: a
+ *  reais list would make "," ambiguous between the list separator and the pt-BR decimal mark. */
+const csvCents = z.string().transform((v, ctx) => {
+  const parts = v
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+  if (parts.length === 0) {
+    ctx.addIssue({ code: "custom", message: "informe ao menos um valor" });
+    return z.NEVER;
+  }
+  const cents = parts.map(Number);
+  if (cents.some((n) => !Number.isInteger(n) || n <= 0)) {
+    ctx.addIssue({
+      code: "custom",
+      message: "valores devem ser números inteiros positivos, em centavos, separados por vírgula",
+    });
+    return z.NEVER;
+  }
+  return cents;
+});
+
+/**
+ * Unlike creatorSettingsSchema, every field here is required: /admin/settings
+ * always shows and submits resolved values for this section (see
+ * lib/config/support.ts) rather than treating a blank field as "use the
+ * default" — a checkbox or a number doesn't have a natural blank state the
+ * way optional text does.
+ */
+export const supportSettingsSchema = z
+  .object({
+    amountPresets: csvCents,
+    minAmountCents: reaisToCents,
+    maxAmountCents: reaisToCents,
+    defaultPublic: z.boolean(),
+    showTotalCount: z.boolean(),
+    showTotalAmount: z.boolean(),
+    avatarStyle: z
+      .string()
+      .trim()
+      .min(1, "obrigatório")
+      .refine(
+        (v) => AVATAR_STYLES.includes(v),
+        `estilo desconhecido — use um destes: ${AVATAR_STYLES.join(", ")}`,
+      ),
+    chargeExpiresInSeconds: z.coerce
+      .number({ error: "informe um número válido" })
+      .int()
+      .positive("precisa ser maior que zero"),
+  })
+  .superRefine((data, ctx) => {
+    if (data.minAmountCents < 100) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["minAmountCents"],
+        message: "o valor mínimo precisa ser pelo menos R$ 1,00",
+      });
+    }
+    if (data.maxAmountCents <= data.minAmountCents) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["maxAmountCents"],
+        message: "o valor máximo precisa ser maior que o mínimo",
+      });
+    }
+  });
+
+export type SupportSettingsInput = z.infer<typeof supportSettingsSchema>;

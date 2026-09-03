@@ -7,6 +7,7 @@ import { Timeline } from "@/components/timeline";
 import { appConfig } from "@/lib/config/config";
 import { getCreator } from "@/lib/config/creator";
 import { getProduct } from "@/lib/config/products";
+import { getSupportSettings } from "@/lib/config/support";
 
 type ProductPageProps = {
   params: Promise<{ product: string }>;
@@ -31,6 +32,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const { product: slug } = await params;
   const product = getProduct(slug);
   if (!product?.isActive) notFound();
+  const supportSettings = getSupportSettings();
 
   return (
     <main className="mx-auto flex max-w-[1120px] flex-col gap-12 px-6 py-14 sm:py-20">
@@ -45,10 +47,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <p className="text-[15px] text-[var(--color-text-muted)]">{product.description}</p>
           ) : null}
           <SupportForm
-            presets={appConfig.amounts.presets}
-            minCents={appConfig.amounts.minCents}
-            maxCents={appConfig.amounts.maxCents}
-            defaultPublic={appConfig.timeline.defaultPublic}
+            presets={supportSettings.amountPresets}
+            minCents={supportSettings.minAmountCents}
+            maxCents={supportSettings.maxAmountCents}
+            defaultPublic={supportSettings.defaultPublic}
             thankYouMessage={appConfig.thankYouMessage}
             productSlug={product.slug}
           />
