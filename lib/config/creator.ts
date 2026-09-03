@@ -1,13 +1,34 @@
-import { env } from "@/lib/config/env";
+import type { CreatorLink } from "@/lib/db/schema";
+import { getSettingsRow } from "@/lib/settings/repo";
+
+export type Creator = {
+  name: string;
+  shortName: string;
+  tagline: string | null;
+  avatarUrl: string | null;
+  links: CreatorLink[];
+};
+
+const DEFAULT_NAME = "Apoia";
 
 /**
- * Short form of the creator's name, used anywhere the full name would make a
- * headline too long ("Apoie {short} no desenvolvimento do X"). Defaults to
- * the first word of APOIA_CREATOR_NAME; override with
- * APOIA_CREATOR_SHORT_NAME when that's not right — a two-word first name, an
- * org name instead of a person, etc.
+ * Creator identity, read from the `settings` table with code-level defaults
+ * for an unconfigured instance (no ENV fallback — see CHANGELOG for the
+ * breaking removal of APOIA_CREATOR_*). Sync: lib/settings/repo.ts caches
+ * the row in memory, invalidated on every write from /admin/settings.
  */
-export const creatorShortName: string =
-  env.APOIA_CREATOR_SHORT_NAME?.trim() ||
-  env.APOIA_CREATOR_NAME.trim().split(/\s+/)[0] ||
-  env.APOIA_CREATOR_NAME;
+export function getCreator(): Creator {
+  const row = getSettingsRow();
+  const name = row?.creatorName?.trim() || DEFAULT_NAME;
+  // Same rule as before: explicit shortName, else the first word of the
+  // effective name (default or saved), else the name itself.
+  const shortName = row?.creatorShortName?.trim() || name.trim().split(/\s+/)[0] || name;
+
+  return {
+    name,
+    shortName,
+    tagline: row?.creatorTagline ?? null,
+    avatarUrl: row?.creatorAvatarUrl ?? null,
+    links: row?.creatorLinks ?? [],
+  };
+}

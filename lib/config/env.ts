@@ -19,26 +19,6 @@ const intFromString = (defaultValue: number) =>
     .transform((v) => (v === undefined || v === "" ? defaultValue : Number(v)))
     .pipe(z.number().int());
 
-const creatorLinkSchema = z.object({
-  label: z.string().min(1).max(40),
-  url: z.string().url(),
-});
-
-const jsonArray = <T extends z.ZodTypeAny>(schema: T, fieldName: string) =>
-  z
-    .string()
-    .optional()
-    .transform((v, ctx) => {
-      if (v === undefined || v.trim() === "") return [];
-      try {
-        return JSON.parse(v);
-      } catch {
-        ctx.addIssue({ code: "custom", message: `${fieldName} is not valid JSON` });
-        return z.NEVER;
-      }
-    })
-    .pipe(z.array(schema));
-
 const csvInts = (defaultValue: number[]) =>
   z
     .string()
@@ -56,16 +36,6 @@ const envSchema = z
   .object({
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 
-    // --- Creator ---
-    APOIA_CREATOR_NAME: z.string().min(1, "APOIA_CREATOR_NAME is required"),
-    // Shown wherever a full name would be too long for a headline (e.g. "Apoie
-    // {short} no desenvolvimento do X"). Defaults to the first word of
-    // APOIA_CREATOR_NAME — set this explicitly for names where that's wrong
-    // (a two-word first name, an org name, etc).
-    APOIA_CREATOR_SHORT_NAME: z.string().max(60).optional(),
-    APOIA_CREATOR_TAGLINE: z.string().max(200).optional(),
-    APOIA_CREATOR_AVATAR_URL: z.string().url().optional().or(z.literal("")),
-    APOIA_CREATOR_LINKS: jsonArray(creatorLinkSchema, "APOIA_CREATOR_LINKS"),
     APOIA_SITE_URL: z.string().url(),
 
     // --- Support form ---
@@ -167,15 +137,24 @@ function loadEnv(): Env {
     throw new Error("Invalid environment configuration");
   }
 
-  // APOIA_PRODUCTS was removed in favor of the /admin product manager.
-  // Unknown keys are silently ignored by zod, so warn explicitly — someone
-  // upgrading with the old var still set would otherwise wonder why their
-  // products vanished.
-  if (process.env.APOIA_PRODUCTS !== undefined) {
+  // Vars retired in favor of /admin, grouped by where their replacement
+  // lives. Unknown keys are silently ignored by zod, so warn explicitly —
+  // someone upgrading with an old var still set would otherwise wonder why
+  // its value stopped taking effect.
+  const retiredVars: Record<string, string> = {
+    APOIA_PRODUCTS: "products are now managed at /admin/products",
+    APOIA_CREATOR_NAME: "creator identity is now managed at /admin/settings",
+    APOIA_CREATOR_SHORT_NAME: "creator identity is now managed at /admin/settings",
+    APOIA_CREATOR_TAGLINE: "creator identity is now managed at /admin/settings",
+    APOIA_CREATOR_AVATAR_URL: "creator identity is now managed at /admin/settings",
+    APOIA_CREATOR_LINKS: "creator identity is now managed at /admin/settings",
+  };
+  const stillSet = Object.keys(retiredVars).filter((key) => process.env[key] !== undefined);
+  if (stillSet.length > 0) {
+    const lines = stillSet.map((key) => `  - ${key}: ${retiredVars[key]}`).join("\n");
     // eslint-disable-next-line no-console
     console.warn(
-      "\nAPOIA_PRODUCTS is set but no longer used — products are now managed at /admin. " +
-        "Remove it from your .env; its value is ignored.\n",
+      `\nThese environment variables are set but no longer used — remove them from your .env, their values are ignored:\n${lines}\n`,
     );
   }
 

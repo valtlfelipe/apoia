@@ -1,5 +1,34 @@
 import { sql } from "drizzle-orm";
-import { index, integer, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
+import { check, index, integer, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
+
+export type CreatorLink = { label: string; url: string };
+
+/**
+ * Single-row table (id is always 1, enforced by the CHECK constraint)
+ * holding config that used to live in ENV and is now editable at
+ * /admin/settings. Every content column is nullable — null means "not
+ * configured", and the default lives in code (lib/config/creator.ts), not
+ * in the database. Meant to grow with future settings migrations: new
+ * columns on this same row, not new tables.
+ */
+export const settings = sqliteTable(
+  "settings",
+  {
+    id: integer("id").primaryKey().default(1),
+
+    // --- Creator (see lib/config/creator.ts for the defaults applied when these are null) ---
+    creatorName: text("creator_name"),
+    creatorShortName: text("creator_short_name"),
+    creatorTagline: text("creator_tagline"),
+    creatorAvatarUrl: text("creator_avatar_url"),
+    creatorLinks: text("creator_links", { mode: "json" }).$type<CreatorLink[]>(),
+
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+      .notNull()
+      .default(sql`(unixepoch('subsec') * 1000)`),
+  },
+  (table) => [check("settings_single_row", sql`${table.id} = 1`)],
+);
 
 /**
  * A support page beyond the generic root — gets its own route at `/<slug>`
@@ -114,3 +143,5 @@ export type WebhookEvent = typeof webhookEvents.$inferSelect;
 export type NewWebhookEvent = typeof webhookEvents.$inferInsert;
 export type ProductRow = typeof products.$inferSelect;
 export type NewProductRow = typeof products.$inferInsert;
+export type SettingsRow = typeof settings.$inferSelect;
+export type NewSettingsRow = typeof settings.$inferInsert;

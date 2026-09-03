@@ -5,8 +5,10 @@ open source no Brasil. Inspirada no [Buy Me a Coffee](https://buymeacoffee.com),
 focada no público brasileiro: **só Pix**, sem coletar e-mail, CPF ou telefone.
 
 Self-hosted, open source. Um admin opcional (login com Google via
-[shoo.dev](https://shoo.dev)) cuida de produtos e apoios; o resto continua
-configurável só por variáveis de ambiente — sem admin nenhum, se você preferir.
+[shoo.dev](https://shoo.dev)) cuida da identidade do criador (nome, avatar, links),
+produtos e apoios; sem ele, a instância roda com os padrões do código (nome "Apoia",
+sem produtos). O resto — Pix, formulário, banco — continua configurável só por
+variáveis de ambiente.
 
 [![Release](https://github.com/valtlfelipe/apoia/actions/workflows/release.yml/badge.svg)](https://github.com/valtlfelipe/apoia/actions/workflows/release.yml)
 [![Release](https://img.shields.io/github/v/release/valtlfelipe/apoia)](https://github.com/valtlfelipe/apoia/releases)
@@ -25,7 +27,7 @@ configurável só por variáveis de ambiente — sem admin nenhum, se você pref
   ou e-mail — a semente é sempre um ID opaco, mesmo para apoios públicos.
 - **Páginas de produto opcionais**: `/financeiro` mostra "Apoie Felipe no
   desenvolvimento do Financeiro"; a raiz aceita apoio genérico. Tudo cai na mesma
-  timeline compartilhada. Gerenciadas pelo `/admin` (veja [Admin](#admin-opcional)).
+  timeline compartilhada. Gerenciadas pelo `/admin` (veja [Admin](#admin)).
 - **Admin opcional**: cadastro de produtos e uma visão dos apoios com nome e
   mensagem reais — inclusive de quem pediu para ficar anônimo na timeline, com a
   opção de tirar (ou devolver) alguém da vitrine pública. Desligado por padrão.
@@ -70,7 +72,9 @@ o workflow em `.github/workflows/release.yml` builda a imagem (`linux/amd64` e
    publica automaticamente em `ghcr.io/<seu-usuário>/<seu-fork>`.)
 
 2. Crie o `.env` na mesma pasta, com base na seção [Configuração](#configuração-variáveis-de-ambiente)
-   abaixo — no mínimo `APOIA_CREATOR_NAME`, `APOIA_SITE_URL` e `WOOVI_APP_ID`.
+   abaixo — no mínimo `APOIA_SITE_URL` e `WOOVI_APP_ID`. Seu nome, avatar e links
+   não são mais variáveis de ambiente: sem o [`/admin`](#admin) habilitado, a
+   instância sobe com os padrões do código (nome "Apoia").
 
 3. Suba:
 
@@ -100,20 +104,16 @@ workflow é disparado manualmente a partir da `main`.
 Tudo fica no `.env`. Veja `.env.example` para a lista completa comentada — aqui vai
 o resumo:
 
-### Criador
+### Site
 
 | Variável | Obrigatória | Descrição |
 |---|---|---|
-| `APOIA_CREATOR_NAME` | sim | Nome completo, mostrado no cabeçalho e na aba do navegador. |
-| `APOIA_CREATOR_SHORT_NAME` | não | Versão curta usada nos títulos ("Apoie {curto} no desenvolvimento do X"). Padrão: primeiro nome de `APOIA_CREATOR_NAME`. |
-| `APOIA_CREATOR_TAGLINE` | não | Frase curta abaixo do nome. |
-| `APOIA_CREATOR_AVATAR_URL` | não | URL de uma imagem própria. Vazio = avatar gerado via DiceBear a partir do nome. A origem dessa URL é liberada automaticamente no `img-src` do CSP. |
-| `APOIA_CREATOR_LINKS` | não | JSON `[{"label","url"}]` — links mostrados no topo. |
-| `APOIA_SITE_URL` | sim | URL pública desta instância (usada em metadata e no registro do webhook). |
+| `APOIA_SITE_URL` | sim | URL pública desta instância (usada em metadata, no registro do webhook e como origin do login OAuth). |
 
-> **Produtos** (`/financeiro`, headline, etc.) não são mais uma variável de
-> ambiente — cadastre-os pelo [`/admin`](#admin-opcional). Sem admin habilitado, a
-> instância só tem a página raiz com apoio genérico.
+> **Criador** (nome, avatar, tagline, links) e **produtos** (`/financeiro`, headline,
+> etc.) não são mais variáveis de ambiente — configure-os pelo [`/admin`](#admin).
+> Sem admin habilitado, a instância roda com os padrões do código: nome "Apoia",
+> avatar gerado, sem tagline nem links, só a página raiz com apoio genérico.
 
 ### Formulário de apoio
 
@@ -204,8 +204,11 @@ Para testar o fluxo de confirmação sem um pagamento Pix real:
 ## Admin
 
 Desligado por padrão — sem `APOIA_ADMIN_EMAIL`/`APOIA_ADMIN_SECRET`, `/admin` não
-existe (404 em qualquer rota sob ele). Habilitado, dá acesso a:
+existe (404 em qualquer rota sob ele), e a instância roda com os padrões do código
+(nome "Apoia", sem produtos). Habilitado, dá acesso a:
 
+- **Configurações**: identidade do criador — nome, nome curto (usado nas headlines),
+  tagline, URL do avatar e os links mostrados no topo da página.
 - **Produtos**: criar, editar, ativar/desativar e (se ainda não tiver apoios)
   excluir as páginas `/<slug>`.
 - **Apoios**: uma lista com nome e mensagem **reais**, mesmo de quem marcou
@@ -244,7 +247,11 @@ shoo.
 - **Rate limiting** por IP na criação de cobranças (o IP em si nunca é salvo — só
   um hash em memória, que expira).
 - Headers de segurança (CSP, HSTS, `X-Frame-Options`, etc.) configurados por padrão
-  em `next.config.ts`.
+  em `next.config.ts`. O `img-src` aceita qualquer origem `https:` — necessário
+  porque a URL do avatar do criador agora é configurável em runtime (pelo
+  `/admin`), não mais fixada no boot — mas `script-src` continua travado em
+  `'self'` e não existe superfície de injeção de HTML na aplicação (nenhum
+  `dangerouslySetInnerHTML`), então isso não abre caminho pra script malicioso.
 
 Sem `/admin` habilitado, não existe nenhuma forma de ver, pela aplicação, o
 nome/mensagem de quem pediu para ficar anônimo — os dados continuam no SQLite, mas

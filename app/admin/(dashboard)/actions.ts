@@ -3,11 +3,17 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import type { DeleteProductState, ProductFormState } from "@/app/admin/(dashboard)/action-state";
+import type {
+  CreatorSettingsFormState,
+  DeleteProductState,
+  ProductFormState,
+} from "@/app/admin/(dashboard)/action-state";
 import { requireAdmin } from "@/lib/auth/admin";
 import { getProduct } from "@/lib/config/products";
 import { createProductRow, deleteProductRow, updateProductRow } from "@/lib/products/repo";
 import { productInputSchema, productUpdateSchema } from "@/lib/products/schema";
+import { updateCreatorSettings } from "@/lib/settings/repo";
+import { creatorSettingsSchema } from "@/lib/settings/schema";
 import { setSupportPublic } from "@/lib/supports/admin";
 
 function productFormValues(formData: FormData) {
@@ -86,4 +92,50 @@ export async function setSupportPublicAction(id: string, isPublic: boolean): Pro
   await setSupportPublic(id, isPublic);
   revalidatePath("/");
   revalidatePath("/admin/supports");
+}
+
+function creatorSettingsFormValues(formData: FormData) {
+  // Links come in as parallel arrays (linkLabel[i] / linkUrl[i], same index
+  // order they were appended to the form in) rather than a JSON blob — see
+  // components/admin/creator-settings-form.tsx. Rows where both sides are
+  // still blank (an "Adicionar link" click nobody filled in) are dropped
+  // before validation; a row with only one side filled is kept, so it
+  // surfaces as a real validation error instead of silently vanishing.
+  const labels = formData.getAll("linkLabel").map(String);
+  const urls = formData.getAll("linkUrl").map(String);
+  const links = labels
+    .map((label, i) => ({ label, url: urls[i] ?? "" }))
+    .filter((link) => link.label.trim() !== "" || link.url.trim() !== "");
+
+  return {
+    name: String(formData.get("name") ?? ""),
+    shortName: String(formData.get("shortName") ?? ""),
+    tagline: String(formData.get("tagline") ?? ""),
+    avatarUrl: String(formData.get("avatarUrl") ?? ""),
+    links,
+  };
+}
+
+export async function updateCreatorSettingsAction(
+  _prevState: CreatorSettingsFormState,
+  formData: FormData,
+): Promise<CreatorSettingsFormState> {
+  await requireAdmin();
+
+  const parsed = creatorSettingsSchema.safeParse(creatorSettingsFormValues(formData));
+  if (!parsed.success) {
+    return { error: "Dados inválidos.", fieldErrors: z.flattenError(parsed.error).fieldErrors };
+  }
+
+  updateCreatorSettings(parsed.data);
+
+  // The root layout owns the <title>/description metadata (generateMetadata
+  // in app/layout.tsx), the home page renders the header directly, and
+  // every /<slug> product page does too — revalidate all three rather than
+  // trying to enumerate every product slug.
+  revalidatePath("/", "layout");
+  revalidatePath("/");
+  revalidatePath("/[product]", "page");
+
+  return { error: null };
 }

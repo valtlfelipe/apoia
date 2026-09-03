@@ -1,12 +1,16 @@
 import Image from "next/image";
-import type { AppConfig } from "@/lib/config/config";
+import type { Creator } from "@/lib/config/creator";
 
 type CreatorHeaderProps = {
-  creator: AppConfig["creator"];
+  creator: Creator;
 };
 
 export function CreatorHeader({ creator }: CreatorHeaderProps) {
-  const avatarSrc = creator.avatarUrl ?? `/api/avatar/creator-${encodeURIComponent(creator.name)}`;
+  // Seed is the literal string "creator" — never the name. Matches
+  // app/api/avatar/[seed]/route.ts's SEED_PATTERN (alphanumeric + hyphen
+  // only, so a name with a space or accent would 400), and keeps the name
+  // out of the URL/access log, per that route's own seed convention.
+  const avatarSrc = creator.avatarUrl ?? "/api/avatar/creator";
 
   return (
     <header className="flex items-center gap-4">

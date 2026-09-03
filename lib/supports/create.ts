@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import QRCode from "qrcode";
 import { appConfig } from "@/lib/config/config";
+import { getCreator } from "@/lib/config/creator";
 import { getProduct } from "@/lib/config/products";
 import { db } from "@/lib/db/client";
 import { supports } from "@/lib/db/schema";
@@ -18,7 +19,7 @@ export type CreateSupportResult = {
 
 function buildChargeComment(productSlug?: string): string {
   const product = productSlug ? getProduct(productSlug) : null;
-  const base = `Apoio a ${appConfig.creator.name}`;
+  const base = `Apoio a ${getCreator().name}`;
   return product ? `${base} - ${product.name}` : base;
 }
 

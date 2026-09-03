@@ -12,3 +12,10 @@ export const initialProductFormState: ProductFormState = { error: null };
 export type DeleteProductState = { error: string | null };
 
 export const initialDeleteProductState: DeleteProductState = { error: null };
+
+export type CreatorSettingsFormState = {
+  error: string | null;
+  fieldErrors?: Record<string, string[] | undefined>;
+};
+
+export const initialCreatorSettingsFormState: CreatorSettingsFormState = { error: null };

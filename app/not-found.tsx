@@ -1,7 +1,14 @@
 import Link from "next/link";
-import { appConfig } from "@/lib/config/config";
+import { getCreator } from "@/lib/config/creator";
+
+// Reads creator identity from the database now — without this, Next may
+// statically prerender this page at build time and bake in whatever the
+// name was then, never picking up a later /admin/settings edit.
+export const dynamic = "force-dynamic";
 
 export default function NotFound() {
+  const creator = getCreator();
+
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-3 px-6 text-center">
       <p className="text-sm font-semibold text-[var(--color-accent)]">404</p>
@@ -9,7 +16,7 @@ export default function NotFound() {
         Essa página não existe
       </h1>
       <p className="text-sm text-[var(--color-text-muted)]">
-        Mas apoiar {appConfig.creator.name} existe, e é rapidinho.
+        Mas apoiar {creator.name} existe, e é rapidinho.
       </p>
       <Link
         href="/"

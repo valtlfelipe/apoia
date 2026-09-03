@@ -1,19 +1,16 @@
-import { creatorShortName } from "@/lib/config/creator";
 import { env } from "@/lib/config/env";
 
 /**
  * Public-safe app configuration derived from ENV. This is what components
  * import — never `env` directly from client-adjacent code — so that adding a
  * new secret to `env.ts` doesn't accidentally leak it into a component prop.
+ *
+ * Creator identity is NOT here — it moved to the database (see
+ * lib/config/creator.ts's `getCreator()`), because it's now editable at
+ * /admin/settings and this object is a module-level constant that can't
+ * reflect a later write without a restart.
  */
 export const appConfig = {
-  creator: {
-    name: env.APOIA_CREATOR_NAME,
-    shortName: creatorShortName,
-    tagline: env.APOIA_CREATOR_TAGLINE ?? null,
-    avatarUrl: env.APOIA_CREATOR_AVATAR_URL || null,
-    links: env.APOIA_CREATOR_LINKS,
-  },
   siteUrl: env.APOIA_SITE_URL,
   amounts: {
     presets: env.APOIA_AMOUNT_PRESETS,

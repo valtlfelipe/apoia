@@ -5,6 +5,7 @@ import { Headline } from "@/components/headline";
 import { SupportForm } from "@/components/support-form";
 import { Timeline } from "@/components/timeline";
 import { appConfig } from "@/lib/config/config";
+import { getCreator } from "@/lib/config/creator";
 import { getProduct } from "@/lib/config/products";
 
 type ProductPageProps = {
@@ -22,7 +23,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   if (!product?.isActive) return {};
   return {
     title: product.headline,
-    description: product.description ?? `Apoie ${appConfig.creator.name} com Pix.`,
+    description: product.description ?? `Apoie ${getCreator().name} com Pix.`,
   };
 }
 
@@ -33,7 +34,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   return (
     <main className="mx-auto flex max-w-[1120px] flex-col gap-12 px-6 py-14 sm:py-20">
-      <CreatorHeader creator={appConfig.creator} />
+      <CreatorHeader creator={getCreator()} />
 
       <div className="grid gap-10 lg:grid-cols-[minmax(0,500px)_minmax(0,500px)] lg:items-start lg:gap-16">
         <div className="space-y-6 lg:sticky lg:top-14">

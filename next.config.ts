@@ -1,34 +1,29 @@
 import { fileURLToPath } from "node:url";
 import type { NextConfig } from "next";
-import { env } from "./lib/config/env";
 
 const isDev = process.env.NODE_ENV === "development";
 const projectRoot = fileURLToPath(new URL(".", import.meta.url));
-
-// If the self-hoster points APOIA_CREATOR_AVATAR_URL at their own image
-// instead of a generated one, allow img-src to load from exactly that
-// origin — never a blanket "https:" allowance. We can't know every
-// self-hosted deployment's avatar host in advance, but each deployment
-// knows its own, so this stays least-privilege per install.
-const avatarOrigin = (() => {
-  if (!env.APOIA_CREATOR_AVATAR_URL) return null;
-  try {
-    return new URL(env.APOIA_CREATOR_AVATAR_URL).origin;
-  } catch {
-    return null;
-  }
-})();
-const imgSrc = ["'self'", "data:", avatarOrigin].filter(Boolean).join(" ");
 
 // Content-Security-Policy for the whole app. Kept deliberately strict: this is
 // a payment-adjacent app, so we default-deny everything and only open what we
 // actually use (self-hosted fonts/scripts/styles, data: URIs for QR codes and
 // generated avatars).
+//
+// img-src allows any "https:" host, not just our own origin — needed because
+// the creator avatar URL is now editable at /admin/settings, stored in the
+// database rather than baked into this build/boot-time config. That's a
+// broader allowance than the old per-deployment origin allowlist (which
+// tracked APOIA_CREATOR_AVATAR_URL directly), but this app has no HTML
+// injection surface to exploit it through — no dangerouslySetInnerHTML
+// anywhere, every supporter-provided string is rendered through React's
+// escaping, and script-src stays locked to 'self'. What it does allow is the
+// image host learning the visitor's IP on load, which was already true of
+// whatever single origin was allow-listed before.
 const cspHeader = `
   default-src 'self';
   script-src 'self'${isDev ? " 'unsafe-eval' 'unsafe-inline'" : ""};
   style-src 'self' 'unsafe-inline';
-  img-src ${imgSrc};
+  img-src 'self' data: https:;
   font-src 'self' data:;
   connect-src 'self';
   object-src 'none';

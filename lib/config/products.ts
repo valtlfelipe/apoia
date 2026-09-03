@@ -1,5 +1,4 @@
-import { creatorShortName } from "@/lib/config/creator";
-import { env } from "@/lib/config/env";
+import { getCreator } from "@/lib/config/creator";
 import type { ProductRow } from "@/lib/db/schema";
 import { getProductRow, listProductRows } from "@/lib/products/repo";
 
@@ -20,10 +19,11 @@ const DEFAULT_HEADLINE_TEMPLATE = "Apoie {creator} no desenvolvimento do {produc
 function toProduct(row: ProductRow): Product {
   // {creator} is the short name — headlines are tight on space. Use
   // {creatorFullName} in a custom headline template if you want the full
-  // APOIA_CREATOR_NAME instead.
+  // creator name instead.
+  const creator = getCreator();
   const vars = {
-    creator: creatorShortName,
-    creatorFullName: env.APOIA_CREATOR_NAME,
+    creator: creator.shortName,
+    creatorFullName: creator.name,
     product: row.name,
   };
   return {
