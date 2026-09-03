@@ -121,27 +121,41 @@ export function CreatorSettingsForm({ action, defaultValues }: CreatorSettingsFo
         <div className="space-y-2">
           {links.map((link) => (
             <div key={link.key} className="flex gap-2">
-              <Input
-                name="linkLabel"
-                defaultValue={link.label}
-                placeholder="GitHub"
-                className="w-32"
-              />
+              {/* Fixed-width wrapper, not a className on <Input>: Input
+                  already bakes in w-full, which has the same specificity as
+                  a width utility passed via className — whichever comes
+                  later in Tailwind's generated stylesheet wins, not
+                  whichever is written last in JSX, so trying to override it
+                  that way is unreliable. Constraining the wrapper's box
+                  instead sidesteps that entirely. */}
+              <div className="w-28 shrink-0">
+                <Input name="linkLabel" defaultValue={link.label} placeholder="GitHub" />
+              </div>
               <Input
                 name="linkUrl"
                 type="url"
                 defaultValue={link.url}
                 placeholder="https://…"
-                className="flex-1"
+                className="min-w-0 flex-1"
               />
-              <Button
+              <button
                 type="button"
-                variant="ghost"
-                className="px-3 py-1.5 text-xs text-red-600 dark:text-red-400"
+                aria-label="Remover link"
+                title="Remover link"
                 onClick={() => removeLink(link.key)}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-red-600 transition-colors hover:bg-red-600/10 dark:text-red-400"
               >
-                Remover
-              </Button>
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" d="M6 6l12 12M18 6L6 18" />
+                </svg>
+              </button>
             </div>
           ))}
         </div>
