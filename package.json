@@ -34,8 +34,8 @@
   "devDependencies": {
     "@biomejs/biome": "2.5.12",
     "@tailwindcss/postcss": "4.3.3",
-    "@types/better-sqlite3": "7.6.13",
-    "@types/node": "22.20.1",
+    "@types/better-sqlite3": "9.6.0",
+    "@types/node": "24.13.3",
     "@types/qrcode": "1.5.6",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.7",
@@ -44,6 +44,6 @@
     "eslint-config-next": "16.3.4",
     "tailwindcss": "4.3.3",
     "tsx": "4.23.13",
-    "typescript": "5.9.3"
+    "typescript": "7.0.2"
   }
 }
