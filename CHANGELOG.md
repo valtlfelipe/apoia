@@ -6,7 +6,7 @@ Todas as mudanças relevantes serão registradas aqui. O formato segue Keep a Ch
 
 ### Added
 
-- Ícone do projeto: um coração branco sobre um quadrado índigo. Vira o favicon (`app/icon.svg`), uma versão raster 180×180 em `/apple-icon` (pra home screen do iOS e pra qualquer lugar que só aceite URL de imagem — o ícone de um template do Railway, por exemplo) e o mark no header do `/admin` e na tela de login. O desenho fica em `lib/brand.ts`, importado por todos os usos menos o `icon.svg`, que precisa ser arquivo literal pela convenção do Next.
+- Ícone do projeto: um coração branco sobre um quadrado índigo. Vira o favicon (`app/icon.svg`), uma versão raster 180×180 em `/apple-icon` (pra home screen do iOS e pra qualquer lugar que só aceite URL de imagem — o ícone de um template do Railway, por exemplo) e o mark no header do `/admin` e na tela de login. Também vai um PNG 512×512 com fundo transparente em `docs/images/icon.png`, pra quando é preciso subir o arquivo em vez de apontar uma URL. O desenho fica em `lib/brand.ts`, importado por todos os usos menos o `icon.svg`, que precisa ser arquivo literal pela convenção do Next.
 - Healthcheck em `/api/health`. Além de responder, ele toca o banco (`select 1`) — o que interessa detectar não é "o processo está de pé", é o container cujo volume `/data` não montou, que responde ping feliz e serve 500 em toda página. É o path pra apontar no healthcheck da plataforma (Railway, `HEALTHCHECK` do Docker, load balancer).
 
 ## [1.0.0] - 2026-09-04
