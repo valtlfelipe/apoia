@@ -5,12 +5,14 @@ import { env } from "@/lib/config/env";
  * Static facts about the apoia project itself — the same for every
  * self-hosted install, unlike lib/config/config.ts (this instance's own
  * config) or lib/settings (the creator's, DB-backed config). Shown on
- * /admin/about.
+ * /admin/about and in the public footer.
  */
 export const PROJECT = {
   author: "Felipe Valtl de Mello",
   repository: "https://github.com/valtlfelipe/apoia",
-  sponsors: "https://github.com/sponsors/valtlfelipe",
+  // apoia's own apoia page, rather than GitHub Sponsors — the project takes
+  // its own medicine.
+  supportUrl: "https://apoia.felipevm.com/apoia",
   license: "AGPL-3.0-only",
 } as const;
 

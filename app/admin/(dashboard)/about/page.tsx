@@ -111,9 +111,9 @@ export default async function AdminAboutPage() {
             description="Se o apoia te ajuda a receber apoio no seu próprio projeto, considere apoiar de volta."
           />
           <CardBody className="flex flex-wrap gap-2">
-            <ActionLink href={PROJECT.sponsors} variant="primary">
+            <ActionLink href={PROJECT.supportUrl} variant="primary">
               <HeartIcon />
-              Apoiar no GitHub Sponsors
+              Apoiar o projeto
             </ActionLink>
             <ActionLink href={PROJECT.repository}>
               <CodeIcon />

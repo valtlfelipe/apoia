@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CreatorHeader } from "@/components/creator-header";
 import { Headline } from "@/components/headline";
+import { SiteFooter } from "@/components/site-footer";
 import { SupportForm } from "@/components/support-form";
 import { Timeline } from "@/components/timeline";
 import { getCreator } from "@/lib/config/creator";
@@ -65,6 +66,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
         <Timeline />
       </div>
+
+      <SiteFooter />
     </main>
   );
 }

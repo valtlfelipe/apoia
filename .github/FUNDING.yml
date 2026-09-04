@@ -1,0 +1,4 @@
+# Powers the "Sponsor" button on the repository page. Points at apoia's own
+# apoia page rather than GitHub Sponsors — same link as "Apoiar o projeto" in
+# /admin/about (see PROJECT.supportUrl in lib/project.ts).
+custom: ["https://apoia.felipevm.com/apoia"]
