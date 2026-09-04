@@ -2,6 +2,12 @@
 
 Todas as mudanças relevantes serão registradas aqui. O formato segue Keep a Changelog e o projeto pretende usar versionamento semântico.
 
+## [Unreleased]
+
+### Fixed
+
+- O container não subia quando o volume era montado por bind mount — caso do Railway, do Fly e da maioria das plataformas. O volume chega pertencendo ao root, e o usuário `apoia` (sem privilégio) não conseguia criar o arquivo do SQLite: `SqliteError: unable to open database file` (`SQLITE_CANTOPEN`) a cada boot, em loop. Volume nomeado do Docker herda a ownership da imagem, então isso não aparecia em teste local. Agora o entrypoint começa como root só para ajustar a pasta montada e cai de volta para `apoia` (via `setpriv`) antes das migrations e do servidor — a app continua sem rodar como root. Quem sobe com `--user` explícito pula esse ajuste, como antes.
+
 ## [1.0.1] - 2026-09-04
 
 ### Added

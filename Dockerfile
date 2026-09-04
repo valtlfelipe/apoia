@@ -65,7 +65,10 @@ RUN cd node_modules && \
     ln -s "${target}/node_modules/better-sqlite3" better-sqlite3 && \
     chown -h apoia:apoia better-sqlite3
 
-USER apoia
+# No `USER apoia` here on purpose: docker-entrypoint.sh needs root just long
+# enough to chown the mounted volume (see the comment there), then drops to
+# `apoia` with setpriv before anything of ours runs. The app never serves a
+# request as root.
 EXPOSE 3000
 ENV PORT=3000 HOSTNAME=0.0.0.0 DATABASE_PATH=/data/apoia.db
 
