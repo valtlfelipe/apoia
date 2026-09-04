@@ -40,15 +40,19 @@ docker run -d \
   -p 3000:3000 \
   -v apoia_data:/data \
   -e APOIA_SITE_URL="https://seu-dominio.com" \
+  -e PIX_PROVIDER="woovi" \
   -e WOOVI_APP_ID="..." \
   -e APOIA_ADMIN_EMAIL="voce@gmail.com" \
   -e APOIA_ADMIN_SECRET="cole-aqui-o-segredo-gerado" \
   ghcr.io/valtlfelipe/apoia:latest
 ```
 
-Essas quatro variáveis são o mínimo; as opcionais estão em
-[Configuração](#configuração). Se preferir, `--env-file .env` no lugar dos vários
-`-e`.
+`APOIA_SITE_URL`, `WOOVI_APP_ID`, `APOIA_ADMIN_EMAIL` e `APOIA_ADMIN_SECRET` são o
+mínimo obrigatório. `PIX_PROVIDER` já tem `woovi` como padrão e está aí só pra
+deixar visível que o provedor de Pix é plugável — veja
+[Adicionando outro provedor](#adicionando-outro-provedor-de-pix). As demais
+opcionais estão em [Configuração](#configuração); se forem muitas, `--env-file .env`
+no lugar dos vários `-e`.
 
 Gere o segredo **uma vez** com `openssl rand -base64 32` e guarde: ele assina o
 cookie de sessão, então trocar depois derruba o seu login no admin.
