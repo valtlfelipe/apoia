@@ -2,11 +2,11 @@
 
 Todas as mudanças relevantes serão registradas aqui. O formato segue Keep a Changelog e o projeto pretende usar versionamento semântico.
 
-## [Unreleased]
+## [1.0.4] - 2026-09-04
 
 ### Changed
 
-- "Apoiar no GitHub Sponsors" no `/admin/about` virou **"Apoiar o projeto"**, apontando para a página de apoio do próprio apoia. O mesmo link vai no `.github/FUNDING.yml`, que é o botão "Sponsor" do repositório.
+- "Apoiar no GitHub Sponsors" no `/admin/about` virou **"Apoiar o projeto"**, apontando para a página de apoio do próprio apoia. O `.github/FUNDING.yml` (o botão "Sponsor" do repositório) lista os dois: o GitHub Sponsors e essa página.
 
 ### Added
 
