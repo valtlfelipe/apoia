@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { AdminNav } from "@/components/admin/admin-nav";
+import { BrandMark } from "@/components/brand-mark";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { requireAdmin } from "@/lib/auth/admin";
@@ -16,9 +17,12 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
     <div className="min-h-screen">
       <header className="sticky top-0 z-30 border-b border-line bg-surface/85 backdrop-blur">
         <div className="mx-auto flex max-w-[1080px] flex-wrap items-center gap-x-5 gap-y-3 px-5 py-3 sm:px-6">
-          <Link href="/" className="leading-tight" title="Ver a página pública">
-            <span className="block text-sm font-bold tracking-tight text-ink">Apoia</span>
-            <span className="block text-[11px] text-ink-muted">Admin</span>
+          <Link href="/" className="flex items-center gap-2.5" title="Ver a página pública">
+            <BrandMark className="size-8 shrink-0" />
+            <span className="leading-tight">
+              <span className="block text-sm font-bold tracking-tight text-ink">Apoia</span>
+              <span className="block text-[11px] text-ink-muted">Admin</span>
+            </span>
           </Link>
 
           <AdminNav />

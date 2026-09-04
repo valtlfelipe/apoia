@@ -74,6 +74,10 @@ docker rm -f apoia
 # rode o mesmo `docker run` de novo
 ```
 
+Se a sua plataforma pede um healthcheck (Railway, um `HEALTHCHECK` de Docker, um
+load balancer), aponte pra **`/api/health`** — ele responde 200 e toca o banco, o
+que também pega o caso do volume que não montou.
+
 As migrations do banco rodam sozinhas a cada boot, antes do servidor subir. Tags
 publicadas a cada release: `latest`, `X.Y.Z`, `X.Y` e `X`; `edge` sai quando o
 workflow é disparado manualmente a partir da `main`. Rodando um fork? A sua imagem

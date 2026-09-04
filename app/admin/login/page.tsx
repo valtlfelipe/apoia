@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { BrandMark } from "@/components/brand-mark";
 import { buttonClasses } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
 import { cn } from "@/lib/cn";
@@ -19,11 +20,14 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
   return (
     <main className="flex min-h-screen items-center justify-center px-5 py-10">
       <div className="w-full max-w-sm">
-        <div className="mb-6 space-y-1 text-center">
-          <h1 className="text-xl font-bold tracking-tight text-ink">Apoia · Admin</h1>
-          <p className="text-sm leading-relaxed text-ink-muted">
-            Entre com a conta Google autorizada para gerenciar produtos e apoios.
-          </p>
+        <div className="mb-6 flex flex-col items-center gap-3 text-center">
+          <BrandMark className="size-12" />
+          <div className="space-y-1">
+            <h1 className="text-xl font-bold tracking-tight text-ink">Apoia · Admin</h1>
+            <p className="text-sm leading-relaxed text-ink-muted">
+              Entre com a conta Google autorizada para gerenciar produtos e apoios.
+            </p>
+          </div>
         </div>
 
         <Card>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="apoia">
+  <rect width="64" height="64" rx="15" fill="#5b5bd6"/>
+  <!-- Nested <svg> with the path's own tight bounding box as its viewBox, so
+       x/y/width/height below place the heart directly instead of through a
+       hand-tuned transform. Same heart used on the "Apoiar" button in /admin. -->
+  <svg x="15" y="18.5" width="34" height="27" viewBox="1.58 3.95 20.85 16.55" aria-hidden="true">
+    <path d="M12 20.5s-7.5-4.6-9.8-9.1C.6 8 2.2 4.5 5.6 4c2-.3 3.9.7 6.4 3 2.5-2.3 4.4-3.3 6.4-3 3.4.5 5 4 3.4 7.4-2.3 4.5-9.8 9.1-9.8 9.1Z" fill="#fff"/>
+  </svg>
+</svg>
