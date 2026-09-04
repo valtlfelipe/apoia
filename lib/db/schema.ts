@@ -35,6 +35,9 @@ export const settings = sqliteTable(
     showTotalAmount: integer("show_total_amount", { mode: "boolean" }),
     avatarStyle: text("avatar_style"),
     chargeExpiresInSeconds: integer("charge_expires_in_seconds"),
+    // Shown in the success dialog after a payment confirms. Accepts an
+    // {amount} placeholder — see components/payment-dialog.tsx.
+    thankYouMessage: text("thank_you_message"),
 
     updatedAt: integer("updated_at", { mode: "timestamp_ms" })
       .notNull()

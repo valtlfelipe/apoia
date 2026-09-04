@@ -4,7 +4,6 @@ import { CreatorHeader } from "@/components/creator-header";
 import { Headline } from "@/components/headline";
 import { SupportForm } from "@/components/support-form";
 import { Timeline } from "@/components/timeline";
-import { appConfig } from "@/lib/config/config";
 import { getCreator } from "@/lib/config/creator";
 import { getProduct } from "@/lib/config/products";
 import { getSupportSettings } from "@/lib/config/support";
@@ -51,7 +50,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             minCents={supportSettings.minAmountCents}
             maxCents={supportSettings.maxAmountCents}
             defaultPublic={supportSettings.defaultPublic}
-            thankYouMessage={appConfig.thankYouMessage}
+            thankYouMessage={supportSettings.thankYouMessage}
             productSlug={product.slug}
           />
         </div>

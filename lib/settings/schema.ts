@@ -79,8 +79,8 @@ const csvCents = z.string().transform((v, ctx) => {
  * Unlike creatorSettingsSchema, every field here is required: /admin/settings
  * always shows and submits resolved values for this section (see
  * lib/config/support.ts) rather than treating a blank field as "use the
- * default" — a checkbox or a number doesn't have a natural blank state the
- * way optional text does.
+ * default" — so even thankYouMessage, free text, stays non-empty here
+ * (clearing it back to the pt-BR default isn't offered from this form).
  */
 export const supportSettingsSchema = z
   .object({
@@ -102,6 +102,12 @@ export const supportSettingsSchema = z
       .number({ error: "informe um número válido" })
       .int()
       .positive("precisa ser maior que zero"),
+    thankYouMessage: z
+      .string()
+      .trim()
+      .min(1, "obrigatório")
+      .max(300, "no máximo 300 caracteres")
+      .transform(sanitizeText),
   })
   .superRefine((data, ctx) => {
     if (data.minAmountCents < 100) {

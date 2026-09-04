@@ -1,6 +1,5 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { isAdminEnabled } from "@/lib/auth/admin";
 import { createAdminSession } from "@/lib/auth/session";
 import { exchangeCodeForToken, verifyShooToken } from "@/lib/auth/shoo";
 import { env } from "@/lib/config/env";
@@ -20,10 +19,6 @@ function loginFailedRedirect(request: Request): NextResponse {
 }
 
 export async function GET(request: Request) {
-  if (!isAdminEnabled()) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
-
   const identifier = getClientIdentifier(request.headers);
   const { allowed } = checkRateLimit(`admin-callback:${identifier}`, 10);
   if (!allowed) {
@@ -53,7 +48,7 @@ export async function GET(request: Request) {
     const tokenResponse = await exchangeCodeForToken({ code, codeVerifier: verifier, redirectUri });
     const identity = await verifyShooToken(tokenResponse.id_token, redirectUri);
 
-    const allowedEmail = env.APOIA_ADMIN_EMAIL?.toLowerCase();
+    const allowedEmail = env.APOIA_ADMIN_EMAIL.toLowerCase();
     const identityEmail = identity.email?.toLowerCase() ?? null;
 
     if (!identity.emailVerified || !identityEmail || identityEmail !== allowedEmail) {

@@ -21,7 +21,8 @@ COPY . .
 # they're only read at build time. The running container reads its own
 # environment at startup instead.
 RUN cp .env.example .env && \
-    sed -i 's/^WOOVI_APP_ID=.*/WOOVI_APP_ID="build-placeholder"/' .env
+    sed -i 's/^WOOVI_APP_ID=.*/WOOVI_APP_ID="build-placeholder"/' .env && \
+    sed -i 's/^APOIA_ADMIN_SECRET=.*/APOIA_ADMIN_SECRET="build-placeholder-needs-32-chars-min"/' .env
 RUN pnpm build
 RUN pnpm db:migrate:build
 RUN rm .env

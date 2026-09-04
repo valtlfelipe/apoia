@@ -1,0 +1,1 @@
+ALTER TABLE `settings` ADD `thank_you_message` text;

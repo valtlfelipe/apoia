@@ -19,9 +19,6 @@ const envSchema = z
 
     APOIA_SITE_URL: z.string().url(),
 
-    // Shown in the success dialog once a payment is confirmed. Accepts an
-    // {amount} placeholder.
-    APOIA_THANK_YOU_MESSAGE: z.string().max(300).optional(),
     APOIA_RATE_LIMIT_PER_MINUTE: intFromString(5),
 
     // --- Database ---
@@ -35,24 +32,15 @@ const envSchema = z
     WOOVI_WEBHOOK_PUBLIC_KEY: z.string().optional(),
 
     // --- Admin ---
-    // Both optional, but required together: set neither to keep /admin fully
-    // disabled (every admin route 404s — see lib/auth/admin.ts), or set both
-    // to turn it on. APOIA_ADMIN_EMAIL is the only account allowed in, after
-    // signing in with shoo.dev; APOIA_ADMIN_SECRET signs our own session
-    // cookie (independent of shoo's token) — generate with `openssl rand
-    // -base64 32`.
-    APOIA_ADMIN_EMAIL: z.string().email().optional(),
-    APOIA_ADMIN_SECRET: z.string().min(32).optional(),
+    // Required: /admin is the only way to configure the creator, products,
+    // and support form — there's no ENV equivalent anymore. APOIA_ADMIN_EMAIL
+    // is the only Google account allowed in, after signing in with shoo.dev;
+    // APOIA_ADMIN_SECRET signs our own session cookie (independent of shoo's
+    // token) — generate with `openssl rand -base64 32`.
+    APOIA_ADMIN_EMAIL: z.string().email(),
+    APOIA_ADMIN_SECRET: z.string().min(32),
   })
   .superRefine((env, ctx) => {
-    if (Boolean(env.APOIA_ADMIN_EMAIL) !== Boolean(env.APOIA_ADMIN_SECRET)) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["APOIA_ADMIN_EMAIL"],
-        message: "APOIA_ADMIN_EMAIL and APOIA_ADMIN_SECRET must be set together (or neither)",
-      });
-    }
-
     if (env.PIX_PROVIDER === "woovi" && !env.WOOVI_APP_ID) {
       ctx.addIssue({
         code: "custom",
@@ -104,6 +92,7 @@ function loadEnv(): Env {
     APOIA_SHOW_TOTAL_AMOUNT: "support-form config is now managed at /admin/settings",
     APOIA_AVATAR_STYLE: "support-form config is now managed at /admin/settings",
     APOIA_CHARGE_EXPIRES_IN: "support-form config is now managed at /admin/settings",
+    APOIA_THANK_YOU_MESSAGE: "support-form config is now managed at /admin/settings",
   };
   const stillSet = Object.keys(retiredVars).filter((key) => process.env[key] !== undefined);
   if (stillSet.length > 0) {

@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { isAdminEnabled } from "@/lib/auth/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +11,6 @@ type LoginPageProps = {
 };
 
 export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
-  if (!isAdminEnabled()) notFound();
   const { error } = await searchParams;
 
   return (

@@ -1,6 +1,5 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { isAdminEnabled } from "@/lib/auth/admin";
 import { deriveCodeChallenge, generateCodeVerifier, generateState } from "@/lib/auth/pkce";
 import { buildAuthorizeUrl } from "@/lib/auth/shoo";
 import { env } from "@/lib/config/env";
@@ -15,10 +14,6 @@ export const dynamic = "force-dynamic";
 const FLOW_COOKIE_MAX_AGE = 10 * 60;
 
 export async function GET(request: Request) {
-  if (!isAdminEnabled()) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
-
   const identifier = getClientIdentifier(request.headers);
   const { allowed } = checkRateLimit(`admin-login:${identifier}`, 10);
   if (!allowed) {

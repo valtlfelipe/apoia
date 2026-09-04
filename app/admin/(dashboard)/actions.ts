@@ -155,6 +155,7 @@ function supportSettingsFormValues(formData: FormData) {
     showTotalAmount: formData.get("showTotalAmount") === "on",
     avatarStyle: String(formData.get("avatarStyle") ?? ""),
     chargeExpiresInSeconds: String(formData.get("chargeExpiresInSeconds") ?? ""),
+    thankYouMessage: String(formData.get("thankYouMessage") ?? ""),
   };
 }
 

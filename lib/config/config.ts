@@ -13,8 +13,6 @@ import { env } from "@/lib/config/env";
  */
 export const appConfig = {
   siteUrl: env.APOIA_SITE_URL,
-  thankYouMessage:
-    env.APOIA_THANK_YOU_MESSAGE ?? "Seu apoio de {amount} chegou certinho. Muito obrigado.",
 } as const;
 
 export type AppConfig = typeof appConfig;

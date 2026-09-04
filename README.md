@@ -4,11 +4,10 @@ Uma página simples para receber apoio via Pix — pensada para quem mantém pro
 open source no Brasil. Inspirada no [Buy Me a Coffee](https://buymeacoffee.com), mas
 focada no público brasileiro: **só Pix**, sem coletar e-mail, CPF ou telefone.
 
-Self-hosted, open source. Um admin opcional (login com Google via
-[shoo.dev](https://shoo.dev)) cuida da identidade do criador (nome, avatar, links),
-produtos e apoios; sem ele, a instância roda com os padrões do código (nome "Apoia",
-sem produtos). O resto — Pix, formulário, banco — continua configurável só por
-variáveis de ambiente.
+Self-hosted, open source. A configuração do site — identidade do criador (nome,
+avatar, links), produtos e o formulário de apoio — é toda feita por um admin com
+login via Google ([shoo.dev](https://shoo.dev)); Pix, banco e alguns detalhes de
+infra continuam por variáveis de ambiente.
 
 [![Release](https://github.com/valtlfelipe/apoia/actions/workflows/release.yml/badge.svg)](https://github.com/valtlfelipe/apoia/actions/workflows/release.yml)
 [![Release](https://img.shields.io/github/v/release/valtlfelipe/apoia)](https://github.com/valtlfelipe/apoia/releases)
@@ -28,19 +27,15 @@ variáveis de ambiente.
 - **Páginas de produto opcionais**: `/financeiro` mostra "Apoie Felipe no
   desenvolvimento do Financeiro"; a raiz aceita apoio genérico. Tudo cai na mesma
   timeline compartilhada. Gerenciadas pelo `/admin` (veja [Admin](#admin)).
-- **Admin opcional**: cadastro de produtos e uma visão dos apoios com nome e
-  mensagem reais — inclusive de quem pediu para ficar anônimo na timeline, com a
-  opção de tirar (ou devolver) alguém da vitrine pública. Desligado por padrão.
+- **Admin**: configura a identidade do criador, cadastra produtos e mostra os
+  apoios com nome e mensagem reais — inclusive de quem pediu para ficar anônimo na
+  timeline, com a opção de tirar (ou devolver) alguém da vitrine pública.
 - **Pix modular**: a integração com o provedor de pagamento é uma interface
   (`PixProvider`) — hoje só a [Woovi](https://woovi.com) está implementada, mas
   trocar (ou adicionar um segundo provedor) é escrever um arquivo novo.
 - **SQLite + Drizzle ORM**: um arquivo, fácil de fazer backup, nenhuma query SQL
   crua na aplicação.
 
-## Stack
-
-Next.js 16 (App Router) · React 19 · Tailwind CSS v4 · Drizzle ORM · SQLite
-(`better-sqlite3`) · Zod · TypeScript.
 
 ## Deploy (self-host)
 
@@ -72,9 +67,10 @@ o workflow em `.github/workflows/release.yml` builda a imagem (`linux/amd64` e
    publica automaticamente em `ghcr.io/<seu-usuário>/<seu-fork>`.)
 
 2. Crie o `.env` na mesma pasta, com base na seção [Configuração](#configuração-variáveis-de-ambiente)
-   abaixo — no mínimo `APOIA_SITE_URL` e `WOOVI_APP_ID`. Seu nome, avatar e links
-   não são mais variáveis de ambiente: sem o [`/admin`](#admin) habilitado, a
-   instância sobe com os padrões do código (nome "Apoia").
+   abaixo — no mínimo `APOIA_SITE_URL`, `WOOVI_APP_ID`, `APOIA_ADMIN_EMAIL` e
+   `APOIA_ADMIN_SECRET`. As duas últimas são a sua conta de login do
+   [`/admin`](#admin) — é lá que você configura nome, avatar, links e produtos, não
+   mais pela ENV.
 
 3. Suba:
 
@@ -82,6 +78,10 @@ o workflow em `.github/workflows/release.yml` builda a imagem (`linux/amd64` e
    docker compose pull
    docker compose up -d
    ```
+
+4. Acesse `https://seu-domínio.com/admin`, entre com a conta Google que você pôs em
+   `APOIA_ADMIN_EMAIL`, e configure o resto em [Configurações](#admin). Até lá, a
+   instância mostra os padrões do código (nome "Apoia", sem produtos).
 
 As migrations do banco rodam automaticamente a cada boot do container, antes do
 servidor subir (veja `docker-entrypoint.sh`) — não tem passo manual de migration
@@ -109,20 +109,7 @@ o resumo:
 | Variável | Obrigatória | Descrição |
 |---|---|---|
 | `APOIA_SITE_URL` | sim | URL pública desta instância (usada em metadata, no registro do webhook e como origin do login OAuth). |
-
-> **Criador** (nome, avatar, tagline, links), **produtos** (`/financeiro`, headline,
-> etc.) e **formulário de apoio** (valores, checkboxes da timeline, estilo do
-> avatar, validade da cobrança) não são mais variáveis de ambiente — configure-os
-> pelo [`/admin`](#admin). Sem admin habilitado, a instância roda com os padrões do
-> código: nome "Apoia", avatar gerado, sem tagline nem links, só a página raiz com
-> apoio genérico, valores sugeridos de R$5/15/25, mínimo R$1, máximo R$10.000.
-
-### Formulário de apoio
-
-| Variável | Padrão | Descrição |
-|---|---|---|
-| `APOIA_THANK_YOU_MESSAGE` | *(padrão em pt-BR)* | Mensagem no modal de sucesso após o pagamento confirmar. Aceita `{amount}`. |
-| `APOIA_RATE_LIMIT_PER_MINUTE` | `5` | Limite de criação de cobranças por IP. |
+| `APOIA_RATE_LIMIT_PER_MINUTE` | não | Limite de criação de cobranças por IP. Padrão: `5`. |
 
 ### Pix
 
@@ -139,15 +126,15 @@ o resumo:
 `DATABASE_PATH` — caminho do arquivo SQLite (padrão `./data/apoia.db`; no Docker é
 fixado em `/data/apoia.db`, dentro do volume).
 
-### Admin (opcional)
+### Admin
 
-| Variável | Descrição |
-|---|---|
-| `APOIA_ADMIN_EMAIL` | A única conta Google autorizada a entrar em `/admin`. |
-| `APOIA_ADMIN_SECRET` | Assina o cookie de sessão do admin. Gere com `openssl rand -base64 32`. |
+| Variável | Obrigatória | Descrição |
+|---|---|---|
+| `APOIA_ADMIN_EMAIL` | sim | A única conta Google autorizada a entrar em `/admin`. |
+| `APOIA_ADMIN_SECRET` | sim | Assina o cookie de sessão do admin. Gere com `openssl rand -base64 32`. |
 
-As duas juntas ligam o `/admin`; nenhuma das duas (o padrão) o desliga por completo —
-toda rota sob `/admin` responde 404. Veja [Admin](#admin) abaixo.
+É por ele que se configura o site — não tem como rodar sem essas duas. Veja
+[Admin](#admin) abaixo.
 
 ## Configurando a Woovi
 
@@ -182,14 +169,13 @@ webhook ainda não foi configurado (dev local, por exemplo).
 
 ## Admin
 
-Desligado por padrão — sem `APOIA_ADMIN_EMAIL`/`APOIA_ADMIN_SECRET`, `/admin` não
-existe (404 em qualquer rota sob ele), e a instância roda com os padrões do código
-(nome "Apoia", sem produtos). Habilitado, dá acesso a:
+Obrigatório — sem `APOIA_ADMIN_EMAIL`/`APOIA_ADMIN_SECRET` a instância nem sobe (o
+boot recusa configuração inválida). É por ele que se configura:
 
 - **Configurações**: identidade do criador (nome, nome curto usado nas headlines,
   tagline, URL do avatar, links) e o formulário de apoio (valores sugeridos,
   mínimo/máximo, os três checkboxes da timeline, estilo do avatar gerado, validade
-  da cobrança Pix).
+  da cobrança Pix, mensagem de agradecimento do modal de sucesso).
 - **Produtos**: criar, editar, ativar/desativar e (se ainda não tiver apoios)
   excluir as páginas `/<slug>`.
 - **Apoios**: uma lista com nome e mensagem **reais**, mesmo de quem marcou
@@ -204,13 +190,6 @@ navegador) e só libera a sessão se o e-mail confirmado bater com
 `APOIA_ADMIN_EMAIL`. A sessão em si é um cookie próprio do apoia, independente do
 shoo.
 
-> **shoo.dev está em estágio inicial** ("SUPER EARLY WIP" no próprio site) — é por
-> isso que `APOIA_ADMIN_EMAIL`/`APOIA_ADMIN_SECRET` são uma segunda trava
-> independente dele: mesmo que o shoo tenha um problema, só a conta exata que você
-> configurou entra. Toda a integração vive em `lib/auth/shoo.ts` — trocar de
-> provedor mais adiante é reescrever um arquivo, no mesmo espírito de
-> [Adicionando outro provedor de Pix](#adicionando-outro-provedor-de-pix).
-
 ## Privacidade e segurança
 
 - **Nenhum dado pessoal é coletado** além do que a pessoa opcionalmente digita: nome
@@ -218,8 +197,8 @@ shoo.
 - **Anônimo na vitrine pública, não no banco**: se a pessoa desmarcar "aparecer na
   timeline", a API pública (`/api/timeline` e a própria página) nunca retorna o
   nome ou a mensagem reais — só "Anônimo" e o valor. Os dados reais ficam no
-  SQLite e, se o `/admin` estiver habilitado, são visíveis só para
-  `APOIA_ADMIN_EMAIL` — nunca pela API pública.
+  SQLite e são visíveis só para `APOIA_ADMIN_EMAIL`, pelo `/admin` — nunca pela API
+  pública.
 - **Payload do webhook é higienizado antes de salvar**: a Woovi manda o nome e o
   CPF de quem pagou dentro do evento de confirmação — esse bloco é removido antes
   de qualquer persistência, inclusive do log de auditoria (`webhook_events`).
@@ -233,10 +212,6 @@ shoo.
   `/admin`), não mais fixada no boot — mas `script-src` continua travado em
   `'self'` e não existe superfície de injeção de HTML na aplicação (nenhum
   `dangerouslySetInnerHTML`), então isso não abre caminho pra script malicioso.
-
-Sem `/admin` habilitado, não existe nenhuma forma de ver, pela aplicação, o
-nome/mensagem de quem pediu para ficar anônimo — os dados continuam no SQLite, mas
-sem CLI nem rota que os exponha.
 
 ## Desenvolvimento local
 
@@ -268,6 +243,11 @@ mudanças no `Dockerfile`):
 ```bash
 docker compose up -d --build
 ```
+
+## Stack
+
+Next.js 16 (App Router) · React 19 · Tailwind CSS v4 · Drizzle ORM · SQLite
+(`better-sqlite3`) · Zod · TypeScript.
 
 ## Adicionando outro provedor de Pix
 

@@ -15,9 +15,6 @@ const COOKIE_NAME = "apoia_admin";
 const SESSION_DURATION_SECONDS = 8 * 60 * 60; // 8h, no refresh — re-login after that.
 
 function secretKey(): Uint8Array {
-  if (!env.APOIA_ADMIN_SECRET) {
-    throw new Error("APOIA_ADMIN_SECRET is not set — admin auth is disabled");
-  }
   return new TextEncoder().encode(env.APOIA_ADMIN_SECRET);
 }
 

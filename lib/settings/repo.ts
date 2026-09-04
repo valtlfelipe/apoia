@@ -67,6 +67,7 @@ export function updateSupportSettings(input: SupportSettingsInput): SettingsRow 
     showTotalAmount: input.showTotalAmount,
     avatarStyle: input.avatarStyle,
     chargeExpiresInSeconds: input.chargeExpiresInSeconds,
+    thankYouMessage: input.thankYouMessage,
     updatedAt: new Date(),
   };
   db.insert(settings).values(values).onConflictDoUpdate({ target: settings.id, set: values }).run();

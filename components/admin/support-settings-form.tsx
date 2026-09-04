@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 type SupportSettingsFormProps = {
   action: (
@@ -23,6 +24,7 @@ type SupportSettingsFormProps = {
     showTotalAmount: boolean;
     avatarStyle: string;
     chargeExpiresInSeconds: number;
+    thankYouMessage: string;
   };
 };
 
@@ -168,6 +170,28 @@ export function SupportSettingsForm({ action, defaultValues }: SupportSettingsFo
         {state.fieldErrors?.chargeExpiresInSeconds ? (
           <p className="text-xs text-red-600 dark:text-red-400">
             {state.fieldErrors.chargeExpiresInSeconds[0]}
+          </p>
+        ) : null}
+      </div>
+
+      <div className="space-y-1.5">
+        <label htmlFor="thankYouMessage" className="text-sm font-medium">
+          Mensagem de agradecimento
+        </label>
+        <Textarea
+          id="thankYouMessage"
+          name="thankYouMessage"
+          rows={2}
+          maxLength={300}
+          defaultValue={defaultValues.thankYouMessage}
+        />
+        <p className="text-xs text-[var(--color-text-muted)]">
+          Mostrada no modal de sucesso após o pagamento confirmar. Aceita <code>{"{amount}"}</code>{" "}
+          como placeholder do valor pago.
+        </p>
+        {state.fieldErrors?.thankYouMessage ? (
+          <p className="text-xs text-red-600 dark:text-red-400">
+            {state.fieldErrors.thankYouMessage[0]}
           </p>
         ) : null}
       </div>
