@@ -14,8 +14,13 @@ async function clearFlowCookies() {
   cookieStore.delete({ name: "apoia_admin_pkce_state", path: "/admin" });
 }
 
-function loginFailedRedirect(request: Request): NextResponse {
-  return NextResponse.redirect(new URL("/admin/login?error=1", request.url));
+// APOIA_SITE_URL, not `request.url`: behind a reverse proxy (Railway, Fly, a
+// plain nginx) the request URL is the container's own bind address, so these
+// redirects used to land the browser on https://0.0.0.0:8080/admin. It's the
+// same value the OAuth redirectUri below is built from — one source of truth
+// for this instance's public origin.
+function loginFailedRedirect(): NextResponse {
+  return NextResponse.redirect(new URL("/admin/login?error=1", env.APOIA_SITE_URL));
 }
 
 export async function GET(request: Request) {
@@ -40,7 +45,7 @@ export async function GET(request: Request) {
   if (!code || !state || !expectedState || !verifier || state !== expectedState) {
     // eslint-disable-next-line no-console
     console.warn("Admin login rejected: missing or mismatched state/verifier.");
-    return loginFailedRedirect(request);
+    return loginFailedRedirect();
   }
 
   try {
@@ -56,14 +61,14 @@ export async function GET(request: Request) {
       // party's PII that just happened to hit this route.
       // eslint-disable-next-line no-console
       console.warn("Admin login rejected: email did not match APOIA_ADMIN_EMAIL.");
-      return loginFailedRedirect(request);
+      return loginFailedRedirect();
     }
 
     await createAdminSession({ email: identityEmail });
-    return NextResponse.redirect(new URL("/admin", request.url));
+    return NextResponse.redirect(new URL("/admin", env.APOIA_SITE_URL));
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error("Admin login failed:", error);
-    return loginFailedRedirect(request);
+    return loginFailedRedirect();
   }
 }
