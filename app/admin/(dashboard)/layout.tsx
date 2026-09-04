@@ -21,16 +21,16 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
         </div>
         <nav className="flex items-center gap-1 text-sm">
           <Link
-            href="/admin/products"
-            className="rounded-full px-3.5 py-2 font-medium text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
-          >
-            Produtos
-          </Link>
-          <Link
             href="/admin/supports"
             className="rounded-full px-3.5 py-2 font-medium text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
           >
             Apoios
+          </Link>
+          <Link
+            href="/admin/products"
+            className="rounded-full px-3.5 py-2 font-medium text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
+          >
+            Produtos
           </Link>
           <Link
             href="/admin/settings"
