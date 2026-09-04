@@ -1,6 +1,6 @@
 {
   "name": "apoia",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Self-hosted, open source page to receive Pix support for your open source work — inspired by Buy Me a Coffee, made for Brazil.",
   "license": "AGPL-3.0-only",
