@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import type { ReactNode } from "react";
 import { appConfig } from "@/lib/config/config";
 import { getCreator } from "@/lib/config/creator";
+import { homeDescription, homeTitle } from "@/lib/seo";
 import "./globals.css";
 
 // One family, nothing else — no display serif, no mono for numbers. Jakarta
@@ -19,21 +20,30 @@ const jakarta = Plus_Jakarta_Sans({
 // fine (and documented) — getCreator() doesn't await anything.
 export function generateMetadata(): Metadata {
   const creator = getCreator();
+  const title = homeTitle(creator);
+  const description = homeDescription(creator);
+
   return {
     metadataBase: new URL(appConfig.siteUrl),
     title: {
-      default: `Apoie ${creator.name}`,
-      template: `%s · Apoie ${creator.name}`,
+      default: title,
+      template: `%s · ${title}`,
     },
-    description:
-      creator.tagline ??
-      `Apoie ${creator.name} com Pix e ajude a manter projetos open source no ar.`,
+    description,
+    // /admin opts out of this in app/admin/layout.tsx.
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+    },
     openGraph: {
-      title: `Apoie ${creator.name}`,
-      description: creator.tagline ?? `Apoie ${creator.name} com Pix.`,
+      title,
+      description,
+      siteName: creator.name,
       type: "website",
       locale: "pt_BR",
     },
+    twitter: { card: "summary_large_image", title, description },
   };
 }
 

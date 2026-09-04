@@ -46,6 +46,11 @@ RUN groupadd --system --gid 1001 apoia && \
 COPY --from=build --chown=apoia:apoia /app/.next/standalone ./
 COPY --from=build --chown=apoia:apoia /app/.next/static ./.next/static
 COPY --from=build --chown=apoia:apoia /app/drizzle ./drizzle
+# Fonts for the Open Graph card (see lib/og/card.tsx). Next's tracer does
+# resolve the readFile paths and already ships these inside .next/standalone,
+# but the card fails outright without them rather than degrading — so copy
+# them explicitly instead of depending on that heuristic continuing to hold.
+COPY --from=build --chown=apoia:apoia /app/assets ./assets
 COPY --from=build --chown=apoia:apoia /app/dist-migrate/migrate.cjs ./migrate.cjs
 COPY --chown=apoia:apoia docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x ./docker-entrypoint.sh

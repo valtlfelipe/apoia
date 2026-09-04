@@ -7,6 +7,7 @@ import { Timeline } from "@/components/timeline";
 import { getCreator } from "@/lib/config/creator";
 import { getProduct } from "@/lib/config/products";
 import { getSupportSettings } from "@/lib/config/support";
+import { pageMetadata, productDescription } from "@/lib/seo";
 
 type ProductPageProps = {
   params: Promise<{ product: string }>;
@@ -20,11 +21,16 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { product: slug } = await params;
   const product = getProduct(slug);
-  if (!product?.isActive) return {};
-  return {
+  // The page itself 404s below, but a deactivated product's URL may already be
+  // out there — say noindex rather than leaving it to the default.
+  if (!product?.isActive) return { robots: { index: false, follow: false } };
+
+  return pageMetadata({
     title: product.headline,
-    description: product.description ?? `Apoie ${getCreator().name} com Pix.`,
-  };
+    description: productDescription(product),
+    path: `/${product.slug}`,
+    siteName: getCreator().name,
+  });
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {

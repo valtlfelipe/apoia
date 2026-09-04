@@ -19,16 +19,11 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
   return (
     <main className="flex min-h-screen items-center justify-center px-5 py-10">
       <div className="w-full max-w-sm">
-        <div className="mb-6 flex flex-col items-center gap-3 text-center">
-          <span className="flex size-11 items-center justify-center rounded-xl bg-brand text-xl font-bold text-on-brand">
-            a
-          </span>
-          <div className="space-y-1">
-            <h1 className="text-xl font-bold tracking-tight text-ink">Apoia · Admin</h1>
-            <p className="text-sm leading-relaxed text-ink-muted">
-              Entre com a conta Google autorizada para gerenciar produtos e apoios.
-            </p>
-          </div>
+        <div className="mb-6 space-y-1 text-center">
+          <h1 className="text-xl font-bold tracking-tight text-ink">Apoia · Admin</h1>
+          <p className="text-sm leading-relaxed text-ink-muted">
+            Entre com a conta Google autorizada para gerenciar produtos e apoios.
+          </p>
         </div>
 
         <Card>
