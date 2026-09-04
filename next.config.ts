@@ -1,40 +1,20 @@
 import { fileURLToPath } from "node:url";
 import type { NextConfig } from "next";
 
-const isDev = process.env.NODE_ENV === "development";
 const projectRoot = fileURLToPath(new URL(".", import.meta.url));
 
-// Content-Security-Policy for the whole app. Kept deliberately strict: this is
-// a payment-adjacent app, so we default-deny everything and only open what we
-// actually use (self-hosted fonts/scripts/styles, data: URIs for QR codes and
-// generated avatars).
+// The Content-Security-Policy lives in proxy.ts, not here: it carries a
+// per-request nonce, which a static config header can't produce. See the
+// comment there — a static `script-src 'self'` blocked Next's own inline
+// scripts and stopped the app hydrating in production.
 //
-// img-src allows any "https:" host, not just our own origin — needed because
-// the creator avatar URL is now editable at /admin/settings, stored in the
-// database rather than baked into this build/boot-time config. That's a
-// broader allowance than the old per-deployment origin allowlist (which
-// tracked APOIA_CREATOR_AVATAR_URL directly), but this app has no HTML
-// injection surface to exploit it through — no dangerouslySetInnerHTML
-// anywhere, every supporter-provided string is rendered through React's
-// escaping, and script-src stays locked to 'self'. What it does allow is the
-// image host learning the visitor's IP on load, which was already true of
-// whatever single origin was allow-listed before.
-const cspHeader = `
-  default-src 'self';
-  script-src 'self'${isDev ? " 'unsafe-eval' 'unsafe-inline'" : ""};
-  style-src 'self' 'unsafe-inline';
-  img-src 'self' data: https:;
-  font-src 'self' data:;
-  connect-src 'self';
-  object-src 'none';
-  base-uri 'self';
-  form-action 'self';
-  frame-ancestors 'none';
-  upgrade-insecure-requests;
-`
-  .replace(/\s{2,}/g, " ")
-  .trim();
-
+// Note for whoever reads the policy there: `img-src` allows any "https:"
+// host, not just our own origin, because the creator avatar URL is editable
+// at /admin/settings and so isn't knowable at build time. This app has no HTML
+// injection surface to exploit that through — no dangerouslySetInnerHTML
+// anywhere, and every supporter-provided string goes through React's escaping.
+// What it does allow is the image host learning the visitor's IP on load,
+// which was already true of the single allow-listed origin it replaced.
 const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
@@ -52,13 +32,14 @@ const nextConfig: NextConfig = {
       {
         source: "/(.*)",
         headers: [
-          { key: "Content-Security-Policy", value: cspHeader },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-Frame-Options", value: "DENY" },
           { key: "Referrer-Policy", value: "no-referrer" },
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
+            // `interest-cohort` is gone: FLoC was removed from Chrome, so the
+            // browser now logs "Unrecognized feature" for it on every page.
+            value: "camera=(), microphone=(), geolocation=()",
           },
           {
             key: "Strict-Transport-Security",
