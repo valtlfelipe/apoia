@@ -11,16 +11,17 @@ export function StatsBar({ totalCount, totalAmountCents, showCount, showAmount }
   if (!showCount && !showAmount) return null;
 
   return (
-    <div className="flex items-center gap-4 text-sm text-[var(--color-text-muted)]">
+    <div className="flex items-center gap-1.5 text-sm text-ink-muted">
       {showCount ? (
         <span>
-          <span className="font-semibold text-[var(--color-text)]">{totalCount}</span>{" "}
+          <span className="font-semibold text-ink tabular-nums">{totalCount}</span>{" "}
           {totalCount === 1 ? "apoio" : "apoios"}
         </span>
       ) : null}
+      {showCount && showAmount ? <span aria-hidden="true">·</span> : null}
       {showAmount ? (
         <span>
-          <span className="font-semibold text-[var(--color-text)]">
+          <span className="font-semibold text-ink tabular-nums">
             {formatCents(totalAmountCents)}
           </span>{" "}
           arrecadados

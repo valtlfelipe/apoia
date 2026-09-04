@@ -4,7 +4,9 @@ import {
   updateSupportSettingsAction,
 } from "@/app/admin/(dashboard)/actions";
 import { CreatorSettingsForm } from "@/components/admin/creator-settings-form";
+import { PageHeader } from "@/components/admin/page-header";
 import { SupportSettingsForm } from "@/components/admin/support-settings-form";
+import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { getSupportSettings } from "@/lib/config/support";
 import { getSettingsRow } from "@/lib/settings/repo";
 
@@ -21,25 +23,44 @@ export default function AdminSettingsPage() {
   const supportSettings = getSupportSettings();
 
   return (
-    <div className="max-w-lg space-y-12">
-      <section className="space-y-6">
-        <h2 className="font-display text-lg font-medium">Criador</h2>
-        <CreatorSettingsForm
-          action={updateCreatorSettingsAction}
-          defaultValues={{
-            name: row?.creatorName ?? undefined,
-            shortName: row?.creatorShortName ?? undefined,
-            tagline: row?.creatorTagline ?? undefined,
-            avatarUrl: row?.creatorAvatarUrl ?? undefined,
-            links: row?.creatorLinks ?? [],
-          }}
-        />
-      </section>
+    <>
+      <PageHeader
+        title="Configurações"
+        description="Sua identidade na página e como o formulário de apoio se comporta."
+      />
 
-      <section className="space-y-6">
-        <h2 className="font-display text-lg font-medium">Formulário de apoio</h2>
-        <SupportSettingsForm action={updateSupportSettingsAction} defaultValues={supportSettings} />
-      </section>
-    </div>
+      {/* Two independent forms, side by side on wide screens — `items-start`
+          so the shorter card doesn't stretch to match the taller one. */}
+      <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
+        <Card>
+          <CardHeader title="Criador" description="O que aparece no topo da página pública." />
+          <CardBody>
+            <CreatorSettingsForm
+              action={updateCreatorSettingsAction}
+              defaultValues={{
+                name: row?.creatorName ?? undefined,
+                shortName: row?.creatorShortName ?? undefined,
+                tagline: row?.creatorTagline ?? undefined,
+                avatarUrl: row?.creatorAvatarUrl ?? undefined,
+                links: row?.creatorLinks ?? [],
+              }}
+            />
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader
+            title="Formulário de apoio"
+            description="Valores, privacidade padrão e o que a timeline mostra."
+          />
+          <CardBody>
+            <SupportSettingsForm
+              action={updateSupportSettingsAction}
+              defaultValues={supportSettings}
+            />
+          </CardBody>
+        </Card>
+      </div>
+    </>
   );
 }

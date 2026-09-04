@@ -1,84 +1,127 @@
 @import "tailwindcss";
 
+/* Semantic tokens, exposed to Tailwind as real utilities (`bg-surface`,
+   `text-ink-muted`, `border-line`, …) instead of arbitrary
+   `bg-[var(--color-surface)]` values everywhere. The indirection — theme
+   entry points at a plain `:root` variable — is what lets dark mode swap the
+   value at runtime while the utility class stays the same. */
 @theme inline {
-  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-display), ui-serif, Georgia, serif;
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-subtle: var(--subtle);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-ink: var(--brand-ink);
+  --color-on-brand: var(--on-brand);
+
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-ink: var(--danger-ink);
+
+  --color-warn-soft: var(--warn-soft);
+  --color-warn-ink: var(--warn-ink);
+
+  --shadow-card: var(--card-shadow);
+  --shadow-pop: var(--pop-shadow);
 }
 
 :root {
-  /* Warm paper palette — intentionally not the teal/gray "AI SaaS" default. */
-  --color-bg: #faf6ee;
-  --color-surface: #fffdf8;
-  --color-surface-2: #f4ecdb;
-  --color-surface-3: #ece0c8;
-  --color-border: #e4d7ba;
-  --color-text: #241c11;
-  --color-text-muted: #776a52;
+  /* Neutral canvas, white cards, one indigo that carries every action.
+     Deliberately not green — the sibling project (financeiro) owns green,
+     and two products sharing an accent read as one product. */
+  --canvas: #f5f5f7;
+  --surface: #ffffff;
+  --subtle: #f1f1f4;
+  --line: #e4e4e9;
+  --ink: #18181b;
+  --ink-muted: #71717a;
 
-  /* Pix teal, deepened so it reads as ink-on-paper rather than a candy gradient. */
-  --color-accent: #0c7d6a;
-  --color-accent-hover: #096a5a;
-  --color-accent-strong: #0a5c4d;
-  --color-accent-contrast: #fffdf8;
-  --color-accent-wash: #0c7d6a1a;
+  --brand: #5b5bd6;
+  --brand-hover: #4a4ac4;
+  --brand-soft: #eeeefb;
+  --brand-ink: #4038b8;
+  --on-brand: #ffffff;
 
-  /* Warm coral used sparingly, for the highlighted word and small flourishes. */
-  --color-mark: #e8703a;
-  --color-mark-wash: #e8703a26;
+  --danger: #dc2626;
+  --danger-soft: #fdeded;
+  --danger-ink: #b91c1c;
 
-  --shadow-card: 0 1px 2px #24190c0d, 0 1px 1px #24190c08;
+  --warn-soft: #fdf3e3;
+  --warn-ink: #b45309;
+
+  --card-shadow: 0 1px 2px rgb(16 16 24 / 0.05);
+  --pop-shadow:
+    0 10px 30px -12px rgb(16 16 24 / 0.22), 0 2px 8px -4px rgb(16 16 24 / 0.12);
 }
 
-/* Dark palette applies when the OS prefers dark AND the visitor hasn't
-   explicitly forced light via the theme toggle, OR when they've explicitly
-   forced dark regardless of OS preference. See components/theme-toggle.tsx —
-   it sets/clears `data-theme` on <html>; no attribute means "follow system". */
+/* Dark applies when the OS prefers dark AND the visitor hasn't forced light,
+   or when they've explicitly forced dark. See components/theme-toggle.tsx —
+   it sets/clears `data-theme` on <html>; no attribute means "follow system".
+   The block is written twice because a media query and a plain selector
+   can't share one rule. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --color-bg: #171209;
-    --color-surface: #1e1810;
-    --color-surface-2: #271f14;
-    --color-surface-3: #33291a;
-    --color-border: #3a2f1e;
-    --color-text: #f6efe0;
-    --color-text-muted: #ab9b7d;
+    --canvas: #0f0f12;
+    --surface: #17171b;
+    --subtle: #1f1f25;
+    --line: #2a2a31;
+    --ink: #f4f4f5;
+    --ink-muted: #9d9da8;
 
-    --color-accent: #2fcab0;
-    --color-accent-hover: #56d8c1;
-    --color-accent-strong: #8fe9d9;
-    --color-accent-contrast: #08221c;
-    --color-accent-wash: #2fcab026;
+    --brand: #6d6df0;
+    --brand-hover: #7f7ff4;
+    --brand-soft: #21213a;
+    --brand-ink: #b3b3fb;
+    --on-brand: #ffffff;
 
-    --color-mark: #ffa470;
-    --color-mark-wash: #ffa4702b;
+    --danger: #e5484d;
+    --danger-soft: #2b1618;
+    --danger-ink: #ff9592;
 
-    --shadow-card: 0 1px 2px #00000040, 0 1px 1px #00000030;
+    --warn-soft: #2a1f12;
+    --warn-ink: #f0b45f;
+
+    --card-shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+    --pop-shadow:
+      0 10px 30px -12px rgb(0 0 0 / 0.6), 0 2px 8px -4px rgb(0 0 0 / 0.4);
   }
 }
 
 :root[data-theme="dark"] {
-  --color-bg: #171209;
-  --color-surface: #1e1810;
-  --color-surface-2: #271f14;
-  --color-surface-3: #33291a;
-  --color-border: #3a2f1e;
-  --color-text: #f6efe0;
-  --color-text-muted: #ab9b7d;
+  --canvas: #0f0f12;
+  --surface: #17171b;
+  --subtle: #1f1f25;
+  --line: #2a2a31;
+  --ink: #f4f4f5;
+  --ink-muted: #9d9da8;
 
-  --color-accent: #2fcab0;
-  --color-accent-hover: #56d8c1;
-  --color-accent-strong: #8fe9d9;
-  --color-accent-contrast: #08221c;
-  --color-accent-wash: #2fcab026;
+  --brand: #6d6df0;
+  --brand-hover: #7f7ff4;
+  --brand-soft: #21213a;
+  --brand-ink: #b3b3fb;
+  --on-brand: #ffffff;
 
-  --color-mark: #ffa470;
-  --color-mark-wash: #ffa4702b;
+  --danger: #e5484d;
+  --danger-soft: #2b1618;
+  --danger-ink: #ff9592;
 
-  --shadow-card: 0 1px 2px #00000040, 0 1px 1px #00000030;
+  --warn-soft: #2a1f12;
+  --warn-ink: #f0b45f;
+
+  --card-shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+  --pop-shadow:
+    0 10px 30px -12px rgb(0 0 0 / 0.6), 0 2px 8px -4px rgb(0 0 0 / 0.4);
 }
 
 * {
-  border-color: var(--color-border);
+  border-color: var(--line);
 }
 
 html {
@@ -94,27 +137,13 @@ html[data-theme="dark"] {
 }
 
 body {
-  background-color: var(--color-bg);
-  color: var(--color-text);
-  /* A faint dot grain — the kind of texture a hand-built page has and a
-     generated one usually skips. Cheap: no image asset, just gradients. */
-  background-image: radial-gradient(circle, #24190c14 1px, transparent 1px);
-  background-size: 22px 22px;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) body {
-    background-image: radial-gradient(circle, #f6efe012 1px, transparent 1px);
-  }
-}
-
-:root[data-theme="dark"] body {
-  background-image: radial-gradient(circle, #f6efe012 1px, transparent 1px);
+  background-color: var(--canvas);
+  color: var(--ink);
 }
 
 ::selection {
-  background-color: var(--color-accent);
-  color: var(--color-accent-contrast);
+  background-color: var(--brand);
+  color: var(--on-brand);
 }
 
 /* Tailwind's preflight resets margin to 0 on every element, which breaks the
@@ -125,24 +154,15 @@ dialog[open] {
 }
 
 dialog::backdrop {
-  background-color: #1a130a66;
-  backdrop-filter: blur(3px);
+  background-color: rgb(9 9 12 / 0.45);
+  backdrop-filter: blur(2px);
 }
 
-.shadow-card {
-  box-shadow: var(--shadow-card);
-}
-
-/* Highlighter-style emphasis for a word/phrase inside a headline. Uses a
-   background gradient (not an absolutely positioned box) with
-   box-decoration-break so the highlight stays correct across line wraps. */
+/* Emphasis for one word inside a headline — just the accent color. The old
+   highlighter-pen treatment (italic serif on a gradient swash) was the
+   loudest thing on the page; a colored word says the same with less. */
 .mark {
-  font-style: italic;
-  color: var(--color-accent-strong);
-  padding: 0 0.16em;
-  background-image: linear-gradient(to top, var(--color-mark-wash) 0.38em, transparent 0.38em);
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
+  color: var(--brand);
 }
 
 @keyframes fade-in {

@@ -48,28 +48,26 @@ export function TimelineList({ initialItems, initialCursor, productSlug }: Timel
 
   if (items.length === 0) {
     return (
-      <div className="rounded-3xl border border-dashed border-[var(--color-border)] py-12 text-center">
-        <p className="font-display text-[var(--color-text-muted)] italic">
-          Ainda ninguém por aqui — que tal ser a primeira pessoa a apoiar?
-        </p>
-      </div>
+      <p className="px-6 py-12 text-center text-sm text-ink-muted">
+        Ainda ninguém por aqui — que tal ser a primeira pessoa a apoiar?
+      </p>
     );
   }
 
   return (
-    <div className="space-y-3">
-      <ul>
+    <>
+      <ul className="divide-y divide-line">
         {items.map((item) => (
           <TimelineItem key={item.id} item={item} />
         ))}
       </ul>
       {cursor ? (
-        <div className="flex justify-center pt-1">
-          <Button type="button" variant="secondary" onClick={loadMore} disabled={loading}>
+        <div className="border-t border-line p-3 text-center">
+          <Button type="button" variant="ghost" size="sm" onClick={loadMore} disabled={loading}>
             {loading ? "Carregando…" : "Carregar mais"}
           </Button>
         </div>
       ) : null}
-    </div>
+    </>
   );
 }

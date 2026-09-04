@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { AdminNav } from "@/components/admin/admin-nav";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { requireAdmin } from "@/lib/auth/admin";
 
@@ -11,50 +13,34 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
   const session = await requireAdmin();
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-[900px] flex-col gap-8 px-6 py-10">
-      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--color-border)] pb-6">
-        <div>
-          <p className="text-xs font-medium tracking-wide text-[var(--color-text-muted)] uppercase">
-            Admin
-          </p>
-          <h1 className="font-display text-xl font-medium">Apoia</h1>
-        </div>
-        <nav className="flex items-center gap-1 text-sm">
-          <Link
-            href="/admin/supports"
-            className="rounded-full px-3.5 py-2 font-medium text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
-          >
-            Apoios
+    <div className="min-h-screen">
+      <header className="sticky top-0 z-30 border-b border-line bg-surface/85 backdrop-blur">
+        <div className="mx-auto flex max-w-[1080px] flex-wrap items-center gap-x-5 gap-y-3 px-5 py-3 sm:px-6">
+          <Link href="/" className="flex items-center gap-2.5" title="Ver a página pública">
+            <span className="flex size-8 items-center justify-center rounded-lg bg-brand text-base font-bold text-on-brand">
+              a
+            </span>
+            <span className="leading-tight">
+              <span className="block text-sm font-bold tracking-tight text-ink">Apoia</span>
+              <span className="block text-[11px] text-ink-muted">Admin</span>
+            </span>
           </Link>
-          <Link
-            href="/admin/products"
-            className="rounded-full px-3.5 py-2 font-medium text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
-          >
-            Produtos
-          </Link>
-          <Link
-            href="/admin/settings"
-            className="rounded-full px-3.5 py-2 font-medium text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
-          >
-            Configurações
-          </Link>
-          <Link
-            href="/admin/about"
-            className="rounded-full px-3.5 py-2 font-medium text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
-          >
-            Sobre
-          </Link>
-        </nav>
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-[var(--color-text-muted)]">{session.email}</span>
-          <form action="/admin/logout" method="POST">
-            <Button type="submit" variant="ghost" className="px-3 py-1.5 text-xs">
-              Sair
-            </Button>
-          </form>
+
+          <AdminNav />
+
+          <div className="ml-auto flex items-center gap-2">
+            <span className="hidden text-xs text-ink-muted sm:block">{session.email}</span>
+            <ThemeToggle />
+            <form action="/admin/logout" method="POST">
+              <Button type="submit" variant="ghost" size="sm">
+                Sair
+              </Button>
+            </form>
+          </div>
         </div>
       </header>
-      {children}
+
+      <main className="mx-auto w-full max-w-[1080px] px-5 py-8 sm:px-6 sm:py-10">{children}</main>
     </div>
   );
 }

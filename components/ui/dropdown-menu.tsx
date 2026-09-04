@@ -52,7 +52,7 @@ export function DropdownMenu({
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
+        className="flex size-8 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-subtle hover:text-ink"
       >
         <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden="true">
           <circle cx="12" cy="5" r="1.6" />
@@ -63,7 +63,7 @@ export function DropdownMenu({
       {open ? (
         <div
           role="menu"
-          className="shadow-card absolute top-full right-0 z-20 mt-1 min-w-[180px] overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] py-1"
+          className="absolute top-full right-0 z-20 mt-1 min-w-[180px] overflow-hidden rounded-xl border border-line bg-surface py-1 shadow-pop"
         >
           <CloseMenuContext.Provider value={close}>{children}</CloseMenuContext.Provider>
         </div>
@@ -90,8 +90,8 @@ export function DropdownMenuItem({
       }}
       className={
         variant === "danger"
-          ? "block w-full px-3 py-2 text-left text-sm text-red-600 transition-colors hover:bg-red-600/10 dark:text-red-400"
-          : "block w-full px-3 py-2 text-left text-sm text-[var(--color-text)] transition-colors hover:bg-[var(--color-surface-2)]"
+          ? "block w-full px-3 py-2 text-left text-sm text-danger-ink transition-colors hover:bg-danger-soft"
+          : "block w-full px-3 py-2 text-left text-sm text-ink transition-colors hover:bg-subtle"
       }
       {...props}
     >

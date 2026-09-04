@@ -34,17 +34,19 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const supportSettings = getSupportSettings();
 
   return (
-    <main className="mx-auto flex max-w-[1120px] flex-col gap-12 px-6 py-14 sm:py-20">
+    <main className="mx-auto flex w-full max-w-[1080px] flex-col gap-10 px-5 py-10 sm:px-6 sm:py-14">
       <CreatorHeader creator={getCreator()} />
 
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,500px)_minmax(0,500px)] lg:items-start lg:gap-16">
-        <div className="space-y-6 lg:sticky lg:top-14">
-          <h2 className="font-display text-3xl leading-[1.15] font-medium text-balance sm:text-4xl">
-            <Headline text={product.headline} highlight={product.name} />
-          </h2>
-          {product.description ? (
-            <p className="text-[15px] text-[var(--color-text-muted)]">{product.description}</p>
-          ) : null}
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,460px)_minmax(0,1fr)] lg:items-start lg:gap-12">
+        <div className="space-y-5 lg:sticky lg:top-10">
+          <div className="space-y-2">
+            <h2 className="text-3xl font-bold tracking-tight text-balance">
+              <Headline text={product.headline} highlight={product.name} />
+            </h2>
+            {product.description ? (
+              <p className="text-[15px] leading-relaxed text-ink-muted">{product.description}</p>
+            ) : null}
+          </div>
           <SupportForm
             presets={supportSettings.amountPresets}
             minCents={supportSettings.minAmountCents}

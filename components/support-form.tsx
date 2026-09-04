@@ -1,12 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
-import { AmountPicker } from "@/components/amount-picker";
+import { useCallback, useState } from "react";
+import { AmountPicker, amountFieldValue } from "@/components/amount-picker";
 import { PaymentDialog, type PendingCharge } from "@/components/payment-dialog";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { formatCents, parseReaisToCents } from "@/lib/format";
 
@@ -29,10 +30,7 @@ export function SupportForm({
 }: SupportFormProps) {
   const router = useRouter();
 
-  const [isCustomMode, setIsCustomMode] = useState(false);
-  const [selectedPresetCents, setSelectedPresetCents] = useState(presets[0] ?? minCents);
-  const [customValueReais, setCustomValueReais] = useState("");
-
+  const [amountReais, setAmountReais] = useState(() => amountFieldValue(presets[0] ?? minCents));
   const [displayName, setDisplayName] = useState("");
   const [message, setMessage] = useState("");
   const [isPublic, setIsPublic] = useState(defaultPublic);
@@ -41,11 +39,7 @@ export function SupportForm({
   const [error, setError] = useState<string | null>(null);
   const [charge, setCharge] = useState<PendingCharge | null>(null);
 
-  const amountCents = useMemo(() => {
-    if (isCustomMode) return parseReaisToCents(customValueReais);
-    return selectedPresetCents;
-  }, [isCustomMode, customValueReais, selectedPresetCents]);
-
+  const amountCents = parseReaisToCents(amountReais);
   const isAmountValid = amountCents !== null && amountCents >= minCents && amountCents <= maxCents;
 
   async function handleSubmit(event: React.FormEvent) {
@@ -93,32 +87,17 @@ export function SupportForm({
     <>
       <form
         onSubmit={handleSubmit}
-        className="shadow-card space-y-5 rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6"
+        className="space-y-5 rounded-2xl border border-line bg-surface p-5 shadow-card sm:p-6"
       >
         <AmountPicker
           presets={presets}
-          isCustomMode={isCustomMode}
-          selectedPresetCents={selectedPresetCents}
-          customValueReais={customValueReais}
+          valueReais={amountReais}
           minCents={minCents}
           maxCents={maxCents}
-          onSelectPreset={(cents) => {
-            setIsCustomMode(false);
-            setSelectedPresetCents(cents);
-          }}
-          onCustomChange={(value) => {
-            setIsCustomMode(true);
-            setCustomValueReais(value);
-          }}
+          onChange={setAmountReais}
         />
 
-        <div className="space-y-1.5">
-          <label
-            htmlFor="displayName"
-            className="block text-sm font-medium text-[var(--color-text)]"
-          >
-            Nome <span className="font-normal text-[var(--color-text-muted)]">(opcional)</span>
-          </label>
+        <Field id="displayName" label="Nome" optional>
           <Input
             id="displayName"
             name="displayName"
@@ -127,41 +106,38 @@ export function SupportForm({
             value={displayName}
             onChange={(event) => setDisplayName(event.target.value)}
           />
-        </div>
+        </Field>
 
-        <div className="space-y-1.5">
-          <label htmlFor="message" className="block text-sm font-medium text-[var(--color-text)]">
-            Mensagem <span className="font-normal text-[var(--color-text-muted)]">(opcional)</span>
-          </label>
+        <Field id="message" label="Mensagem" optional>
           <Textarea
             id="message"
             name="message"
-            rows={2}
+            rows={3}
             maxLength={280}
             placeholder="Deixe uma palavra de apoio"
             value={message}
             onChange={(event) => setMessage(event.target.value)}
           />
-        </div>
+        </Field>
 
-        <Checkbox
+        <Switch
           id="isPublic"
           label="Aparecer na timeline"
-          description="Se desmarcado, seu apoio aparece como “Anônimo” publicamente — seu nome e mensagem ficam salvos, mas só quem recebe o apoio consegue vê-los."
+          description="Se desligado, seu apoio aparece como “Anônimo” publicamente — nome e mensagem ficam salvos, mas só quem recebe consegue vê-los."
           checked={isPublic}
           onChange={(event) => setIsPublic(event.target.checked)}
         />
 
         {error ? (
-          <p role="alert" className="text-sm font-medium text-red-500">
+          <p role="alert" className="text-sm font-medium text-danger-ink">
             {error}
           </p>
         ) : null}
 
-        <Button type="submit" className="w-full" disabled={!isAmountValid || submitting}>
+        <Button type="submit" size="lg" className="w-full" disabled={!isAmountValid || submitting}>
           {submitting
             ? "Gerando cobrança…"
-            : `Apoiar com Pix${amountCents ? ` · ${formatCents(amountCents)}` : ""}`}
+            : `Apoiar com Pix${amountCents !== null ? ` · ${formatCents(amountCents)}` : ""}`}
         </Button>
       </form>
 

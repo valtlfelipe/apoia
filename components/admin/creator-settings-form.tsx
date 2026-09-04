@@ -6,6 +6,7 @@ import {
   initialCreatorSettingsFormState,
 } from "@/app/admin/(dashboard)/action-state";
 import { Button } from "@/components/ui/button";
+import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 
 type CreatorLink = { label: string; url: string };
@@ -47,60 +48,51 @@ export function CreatorSettingsForm({ action, defaultValues }: CreatorSettingsFo
   return (
     <form action={formAction} className="space-y-5">
       {state.error ? (
-        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+        <p role="alert" className="text-sm font-medium text-danger-ink">
           {state.error}
         </p>
       ) : null}
 
-      <div className="space-y-1.5">
-        <label htmlFor="name" className="text-sm font-medium">
-          Nome
-        </label>
+      <Field
+        id="name"
+        label="Nome"
+        error={state.fieldErrors?.name?.[0]}
+        hint='Em branco usa o padrão "Apoia".'
+      >
         <Input id="name" name="name" defaultValue={defaultValues.name} placeholder="Apoia" />
-        <p className="text-xs text-[var(--color-text-muted)]">Em branco usa o padrão "Apoia".</p>
-        {state.fieldErrors?.name ? (
-          <p className="text-xs text-red-600 dark:text-red-400">{state.fieldErrors.name[0]}</p>
-        ) : null}
-      </div>
+      </Field>
 
-      <div className="space-y-1.5">
-        <label htmlFor="shortName" className="text-sm font-medium">
-          Nome curto (opcional)
-        </label>
+      <Field
+        id="shortName"
+        label="Nome curto"
+        optional
+        error={state.fieldErrors?.shortName?.[0]}
+        hint={`Usado onde o nome completo não cabe ("Apoie {curto} no desenvolvimento do X"). Em branco usa a primeira palavra do nome.`}
+      >
         <Input
           id="shortName"
           name="shortName"
           defaultValue={defaultValues.shortName}
           placeholder="Ex.: só o primeiro nome"
         />
-        <p className="text-xs text-[var(--color-text-muted)]">
-          Usado onde o nome completo não cabe ("Apoie {"{curto}"} no desenvolvimento do X"). Em
-          branco usa a primeira palavra do nome.
-        </p>
-        {state.fieldErrors?.shortName ? (
-          <p className="text-xs text-red-600 dark:text-red-400">{state.fieldErrors.shortName[0]}</p>
-        ) : null}
-      </div>
+      </Field>
 
-      <div className="space-y-1.5">
-        <label htmlFor="tagline" className="text-sm font-medium">
-          Frase curta (opcional)
-        </label>
+      <Field id="tagline" label="Frase curta" optional error={state.fieldErrors?.tagline?.[0]}>
         <Input
           id="tagline"
           name="tagline"
           defaultValue={defaultValues.tagline}
           placeholder="Construindo em público, em open source"
         />
-        {state.fieldErrors?.tagline ? (
-          <p className="text-xs text-red-600 dark:text-red-400">{state.fieldErrors.tagline[0]}</p>
-        ) : null}
-      </div>
+      </Field>
 
-      <div className="space-y-1.5">
-        <label htmlFor="avatarUrl" className="text-sm font-medium">
-          URL do avatar (opcional)
-        </label>
+      <Field
+        id="avatarUrl"
+        label="URL do avatar"
+        optional
+        error={state.fieldErrors?.avatarUrl?.[0]}
+        hint="Precisa ser https. Em branco usa um avatar gerado automaticamente."
+      >
         <Input
           id="avatarUrl"
           name="avatarUrl"
@@ -108,16 +100,10 @@ export function CreatorSettingsForm({ action, defaultValues }: CreatorSettingsFo
           defaultValue={defaultValues.avatarUrl}
           placeholder="https://…"
         />
-        <p className="text-xs text-[var(--color-text-muted)]">
-          Precisa ser https. Em branco usa um avatar gerado automaticamente.
-        </p>
-        {state.fieldErrors?.avatarUrl ? (
-          <p className="text-xs text-red-600 dark:text-red-400">{state.fieldErrors.avatarUrl[0]}</p>
-        ) : null}
-      </div>
+      </Field>
 
       <fieldset className="space-y-2">
-        <legend className="text-sm font-medium">Links (opcional)</legend>
+        <legend className="mb-1.5 text-sm font-medium text-ink">Links (opcional)</legend>
         <div className="space-y-2">
           {links.map((link) => (
             <div key={link.key} className="flex gap-2">
@@ -143,11 +129,11 @@ export function CreatorSettingsForm({ action, defaultValues }: CreatorSettingsFo
                 aria-label="Remover link"
                 title="Remover link"
                 onClick={() => removeLink(link.key)}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-red-600 transition-colors hover:bg-red-600/10 dark:text-red-400"
+                className="flex size-10 shrink-0 items-center justify-center rounded-xl text-ink-muted transition-colors hover:bg-danger-soft hover:text-danger-ink"
               >
                 <svg
                   viewBox="0 0 24 24"
-                  className="h-4 w-4"
+                  className="size-4"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth={2}
@@ -159,13 +145,13 @@ export function CreatorSettingsForm({ action, defaultValues }: CreatorSettingsFo
             </div>
           ))}
         </div>
-        <Button type="button" variant="secondary" className="px-3 py-1.5 text-xs" onClick={addLink}>
+        <Button type="button" variant="secondary" size="sm" onClick={addLink}>
           Adicionar link
         </Button>
         {state.fieldErrors?.links ? (
           <ul className="space-y-0.5">
             {state.fieldErrors.links.map((message) => (
-              <li key={message} className="text-xs text-red-600 dark:text-red-400">
+              <li key={message} className="text-xs font-medium text-danger-ink">
                 {message}
               </li>
             ))}

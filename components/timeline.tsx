@@ -1,5 +1,6 @@
 import { StatsBar } from "@/components/stats-bar";
 import { TimelineList } from "@/components/timeline-list";
+import { Card, CardHeader } from "@/components/ui/card";
 import { getSupportSettings } from "@/lib/config/support";
 import { getTimelineAggregates, getTimelinePage } from "@/lib/supports/queries";
 
@@ -11,21 +12,23 @@ export async function Timeline({ productSlug }: { productSlug?: string }) {
   const supportSettings = getSupportSettings();
 
   return (
-    <section className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="font-display text-xl font-medium text-[var(--color-text)]">Apoiadores</h2>
-        <StatsBar
-          totalCount={aggregates.totalCount}
-          totalAmountCents={aggregates.totalAmountCents}
-          showCount={supportSettings.showTotalCount}
-          showAmount={supportSettings.showTotalAmount}
-        />
-      </div>
+    <Card className="overflow-hidden">
+      <CardHeader
+        title="Apoiadores"
+        action={
+          <StatsBar
+            totalCount={aggregates.totalCount}
+            totalAmountCents={aggregates.totalAmountCents}
+            showCount={supportSettings.showTotalCount}
+            showAmount={supportSettings.showTotalAmount}
+          />
+        }
+      />
       <TimelineList
         initialItems={page.items}
         initialCursor={page.nextCursor}
         productSlug={productSlug}
       />
-    </section>
+    </Card>
   );
 }

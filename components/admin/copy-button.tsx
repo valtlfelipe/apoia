@@ -31,12 +31,12 @@ export function CopyButton({ value, label = "Copiar" }: { value: string; label?:
       onClick={handleCopy}
       aria-label={copied ? "Copiado" : label}
       title={copied ? "Copiado!" : label}
-      className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
+      className="inline-flex size-6 shrink-0 items-center justify-center rounded-md text-ink-muted transition-colors hover:bg-subtle hover:text-ink"
     >
       {copied ? (
         <svg
           viewBox="0 0 24 24"
-          className="h-3.5 w-3.5 text-[var(--color-accent)]"
+          className="size-3.5 text-brand"
           fill="none"
           stroke="currentColor"
           strokeWidth={2}

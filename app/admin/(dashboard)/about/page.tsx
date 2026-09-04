@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { recheckUpdatesAction } from "@/app/admin/(dashboard)/actions";
+import { PageHeader } from "@/components/admin/page-header";
 import { RecheckUpdatesButton } from "@/components/admin/recheck-updates-button";
 import { Badge } from "@/components/ui/badge";
+import { buttonClasses } from "@/components/ui/button";
+import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { checkForUpdates, getInstalledVersion, PROJECT, type UpdateCheck } from "@/lib/project";
 
 export const metadata: Metadata = { title: "Sobre" };
@@ -11,93 +15,152 @@ const checkedAtFormatter = new Intl.DateTimeFormat("pt-BR", {
   timeStyle: "short",
 });
 
-const STATUS_COPY: Record<UpdateCheck["status"], { hint: string }> = {
+const STATUS_COPY: Record<UpdateCheck["status"], { title: string; hint: string }> = {
   available: {
+    title: "Nova versão disponível",
     hint: "Puxe a imagem nova e reinicie o container quando puder — veja “Atualizar” no README.",
   },
-  current: { hint: "Nenhuma atualização disponível no momento." },
+  current: {
+    title: "Você está na versão mais recente.",
+    hint: "Nenhuma atualização disponível no momento.",
+  },
   development: {
+    title: "Rodando uma build de desenvolvimento.",
     hint: "Builds de desenvolvimento não são comparadas com releases publicadas.",
   },
   unavailable: {
+    title: "Não foi possível checar atualizações.",
     hint: "Ainda não há nenhuma release publicada, ou não foi possível checar agora — confira a conexão desta instância com a internet.",
   },
 };
 
+function ActionLink({
+  href,
+  variant = "secondary",
+  children,
+}: {
+  href: string;
+  variant?: "primary" | "secondary";
+  children: ReactNode;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={buttonClasses(variant, "md")}
+    >
+      {children}
+    </a>
+  );
+}
+
 export default async function AdminAboutPage() {
   const installedVersion = getInstalledVersion();
   const update = await checkForUpdates();
+  const copy = STATUS_COPY[update.status];
 
   return (
-    <div className="max-w-lg space-y-12">
-      <section className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="font-display text-lg font-medium">Sobre</h2>
-          <Badge>{installedVersion === "dev" ? "dev" : `v${installedVersion}`}</Badge>
-        </div>
+    <div className="max-w-xl">
+      <PageHeader
+        title={
+          <span className="flex items-center gap-2.5">
+            Sobre
+            <Badge>{installedVersion === "dev" ? "dev" : `v${installedVersion}`}</Badge>
+          </span>
+        }
+        description="Receba apoio via Pix — o seu próprio “Buy Me a Coffee”, self-hosted."
+      />
 
-        <p className="text-sm text-[var(--color-text-muted)]">
-          Apoia é software livre, self-hosted, mantido por{" "}
-          <a
-            href={PROJECT.repository}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[var(--color-text)] underline decoration-[var(--color-border)] underline-offset-4 hover:decoration-[var(--color-text)]"
-          >
-            {PROJECT.author}
-          </a>
-          .
-        </p>
-
-        <div className="rounded-2xl bg-[var(--color-surface-2)] p-4 sm:p-5">
-          <div className="flex items-start gap-3">
-            <UpdateStatusIcon status={update.status} />
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium">
-                {update.status === "available" &&
-                  `Nova versão disponível: v${update.latestVersion}`}
-                {update.status === "current" && "Você está na versão mais recente."}
-                {update.status === "development" && "Rodando uma build de desenvolvimento."}
-                {update.status === "unavailable" && "Não foi possível checar atualizações."}
-              </p>
-              <p className="mt-1 text-sm leading-relaxed text-[var(--color-text-muted)]">
-                {STATUS_COPY[update.status].hint}
-              </p>
-              {update.status !== "unavailable" ? (
-                <p className="mt-2 text-xs text-[var(--color-text-muted)]">
-                  Checado em {checkedAtFormatter.format(new Date(update.checkedAt))}.
+      <div className="space-y-5">
+        <Card>
+          <CardBody className="space-y-4">
+            <div className="flex items-start gap-3">
+              <UpdateStatusIcon status={update.status} />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-ink">
+                  {update.status === "available"
+                    ? `${copy.title}: v${update.latestVersion}`
+                    : copy.title}
                 </p>
-              ) : null}
+                <p className="mt-1 text-sm leading-relaxed text-ink-muted">{copy.hint}</p>
+                {update.status !== "unavailable" ? (
+                  <p className="mt-2 text-xs text-ink-muted">
+                    Checado em {checkedAtFormatter.format(new Date(update.checkedAt))}.
+                  </p>
+                ) : null}
+              </div>
             </div>
-          </div>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {update.status === "available" && update.releaseUrl ? (
-              <a href={update.releaseUrl} target="_blank" rel="noopener noreferrer">
-                <span className="inline-flex items-center gap-2 rounded-full bg-[var(--color-accent)] px-4 py-2 text-xs font-semibold text-[var(--color-accent-contrast)] shadow-[0_1px_0_var(--color-accent-strong)] transition-all duration-150 hover:bg-[var(--color-accent-hover)] active:translate-y-px">
+            <div className="flex flex-wrap gap-2">
+              {update.status === "available" && update.releaseUrl ? (
+                <ActionLink href={update.releaseUrl} variant="primary">
                   Ver release
                   <ExternalLinkIcon />
-                </span>
-              </a>
-            ) : null}
-            <form action={recheckUpdatesAction}>
-              <RecheckUpdatesButton />
-            </form>
-          </div>
-        </div>
+                </ActionLink>
+              ) : null}
+              <form action={recheckUpdatesAction}>
+                <RecheckUpdatesButton />
+              </form>
+            </div>
+          </CardBody>
+        </Card>
 
-        <dl className="grid gap-5 sm:grid-cols-2">
+        <Card>
+          <CardHeader
+            title="Apoie o projeto"
+            description="Se o apoia te ajuda a receber apoio no seu próprio projeto, considere apoiar de volta."
+          />
+          <CardBody className="flex flex-wrap gap-2">
+            <ActionLink href={PROJECT.sponsors} variant="primary">
+              <HeartIcon />
+              Apoiar no GitHub Sponsors
+            </ActionLink>
+            <ActionLink href={PROJECT.repository}>
+              <CodeIcon />
+              Ver repositório
+            </ActionLink>
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader
+            title="Feedback"
+            description="Encontrou um problema ou tem uma ideia? Abra uma issue no repositório."
+          />
+          <CardBody className="flex flex-wrap gap-2">
+            <ActionLink href={`${PROJECT.repository}/issues/new?template=bug_report.yml`}>
+              <BugIcon />
+              Reportar bug
+            </ActionLink>
+            <ActionLink href={`${PROJECT.repository}/issues/new?template=feature_request.yml`}>
+              <LightbulbIcon />
+              Sugerir funcionalidade
+            </ActionLink>
+          </CardBody>
+        </Card>
+
+        <dl className="grid gap-5 px-1 sm:grid-cols-2">
           <div>
-            <dt className="text-xs text-[var(--color-text-muted)]">Autor</dt>
-            <dd className="mt-1 text-sm font-medium">{PROJECT.author}</dd>
+            <dt className="text-xs text-ink-muted">Autor</dt>
+            <dd className="mt-1 text-sm font-medium">
+              <a
+                href={PROJECT.repository}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-brand-ink"
+              >
+                {PROJECT.author}
+              </a>
+            </dd>
           </div>
           <div>
-            <dt className="text-xs text-[var(--color-text-muted)]">Licença</dt>
+            <dt className="text-xs text-ink-muted">Licença</dt>
             <dd className="mt-1 text-sm font-medium">
               <a
                 href={`${PROJECT.repository}/blob/main/LICENSE`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 underline decoration-[var(--color-border)] underline-offset-4 hover:decoration-[var(--color-text)]"
+                className="inline-flex items-center gap-1 hover:text-brand-ink"
               >
                 {PROJECT.license}
                 <ExternalLinkIcon />
@@ -105,57 +168,7 @@ export default async function AdminAboutPage() {
             </dd>
           </div>
         </dl>
-      </section>
-
-      <section className="space-y-4 border-t border-[var(--color-border)] pt-8">
-        <h3 className="text-sm font-medium">Apoie o projeto</h3>
-        <p className="text-sm text-[var(--color-text-muted)]">
-          Se o apoia te ajuda a receber apoio no seu próprio projeto, considere apoiar de volta.
-        </p>
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <a href={PROJECT.sponsors} target="_blank" rel="noopener noreferrer">
-            <span className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-accent)] px-5 py-2.5 text-sm font-semibold text-[var(--color-accent-contrast)] shadow-[0_1px_0_var(--color-accent-strong)] transition-all duration-150 hover:bg-[var(--color-accent-hover)] active:translate-y-px">
-              <HeartIcon />
-              Apoiar no GitHub Sponsors
-            </span>
-          </a>
-          <a href={PROJECT.repository} target="_blank" rel="noopener noreferrer">
-            <span className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-2.5 text-sm font-semibold text-[var(--color-text)] transition-colors hover:bg-[var(--color-surface-2)]">
-              <CodeIcon />
-              Ver repositório
-            </span>
-          </a>
-        </div>
-      </section>
-
-      <section className="space-y-4 border-t border-[var(--color-border)] pt-8">
-        <h3 className="text-sm font-medium">Feedback</h3>
-        <p className="text-sm text-[var(--color-text-muted)]">
-          Encontrou um problema ou tem uma ideia? Abra uma issue no repositório.
-        </p>
-        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-          <a
-            href={`${PROJECT.repository}/issues/new?template=bug_report.yml`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <span className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-2.5 text-sm font-semibold text-[var(--color-text)] transition-colors hover:bg-[var(--color-surface-2)]">
-              <BugIcon />
-              Reportar bug
-            </span>
-          </a>
-          <a
-            href={`${PROJECT.repository}/issues/new?template=feature_request.yml`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <span className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-2.5 text-sm font-semibold text-[var(--color-text)] transition-colors hover:bg-[var(--color-surface-2)]">
-              <LightbulbIcon />
-              Sugerir funcionalidade
-            </span>
-          </a>
-        </div>
-      </section>
+      </div>
     </div>
   );
 }
@@ -165,7 +178,7 @@ function UpdateStatusIcon({ status }: { status: UpdateCheck["status"] }) {
     return (
       <svg
         viewBox="0 0 24 24"
-        className="mt-0.5 h-5 w-5 shrink-0 text-[var(--color-accent)]"
+        className="mt-0.5 size-5 shrink-0 text-brand"
         fill="none"
         stroke="currentColor"
         strokeWidth={2}
@@ -180,7 +193,7 @@ function UpdateStatusIcon({ status }: { status: UpdateCheck["status"] }) {
     return (
       <svg
         viewBox="0 0 24 24"
-        className="mt-0.5 h-5 w-5 shrink-0 text-[var(--color-accent)]"
+        className="mt-0.5 size-5 shrink-0 text-brand"
         fill="none"
         stroke="currentColor"
         strokeWidth={2}
@@ -195,7 +208,7 @@ function UpdateStatusIcon({ status }: { status: UpdateCheck["status"] }) {
   return (
     <svg
       viewBox="0 0 24 24"
-      className="mt-0.5 h-5 w-5 shrink-0 text-[var(--color-text-muted)]"
+      className="mt-0.5 size-5 shrink-0 text-ink-muted"
       fill="none"
       stroke="currentColor"
       strokeWidth={2}
@@ -212,7 +225,7 @@ function ExternalLinkIcon() {
   return (
     <svg
       viewBox="0 0 24 24"
-      className="h-3.5 w-3.5"
+      className="size-3.5"
       fill="none"
       stroke="currentColor"
       strokeWidth={2}
@@ -227,7 +240,7 @@ function HeartIcon() {
   return (
     <svg
       viewBox="0 0 24 24"
-      className="h-4 w-4"
+      className="size-4"
       fill="none"
       stroke="currentColor"
       strokeWidth={2}
@@ -246,7 +259,7 @@ function CodeIcon() {
   return (
     <svg
       viewBox="0 0 24 24"
-      className="h-4 w-4"
+      className="size-4"
       fill="none"
       stroke="currentColor"
       strokeWidth={2}
@@ -261,7 +274,7 @@ function BugIcon() {
   return (
     <svg
       viewBox="0 0 24 24"
-      className="h-4 w-4"
+      className="size-4"
       fill="none"
       stroke="currentColor"
       strokeWidth={2}
@@ -280,7 +293,7 @@ function LightbulbIcon() {
   return (
     <svg
       viewBox="0 0 24 24"
-      className="h-4 w-4"
+      className="size-4"
       fill="none"
       stroke="currentColor"
       strokeWidth={2}

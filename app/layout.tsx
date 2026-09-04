@@ -1,17 +1,16 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import type { ReactNode } from "react";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { appConfig } from "@/lib/config/config";
 import { getCreator } from "@/lib/config/creator";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
-const fraunces = Fraunces({
+// One family, nothing else — no display serif, no mono for numbers. Jakarta
+// carries headings at 700 and body at 400/500 on its own, which is the whole
+// point: fewer moving parts than the two-font setup it replaced.
+const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  style: ["normal", "italic"],
-  axes: ["opsz", "SOFT"],
-  variable: "--font-display",
+  variable: "--font-jakarta",
 });
 
 // A function, not a module-level const: creator identity now lives in the
@@ -40,13 +39,8 @@ export function generateMetadata(): Metadata {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="pt-BR" className={`${inter.variable} ${fraunces.variable}`}>
-      <body className="min-h-screen font-sans antialiased">
-        <div className="fixed top-4 right-4 z-20 sm:top-6 sm:right-6">
-          <ThemeToggle />
-        </div>
-        {children}
-      </body>
+    <html lang="pt-BR" className={jakarta.variable}>
+      <body className="min-h-screen font-sans antialiased">{children}</body>
     </html>
   );
 }

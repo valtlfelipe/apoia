@@ -5,12 +5,7 @@ import { useMemo } from "react";
 // Kept small and on-brand rather than reaching for a confetti library: a
 // handful of DOM pieces animated with a CSS keyframe (see .confetti-piece in
 // globals.css), colored from our own palette instead of generic rainbow.
-const COLORS = [
-  "var(--color-accent)",
-  "var(--color-accent-strong)",
-  "var(--color-mark)",
-  "#e0b039",
-];
+const COLORS = ["var(--brand)", "var(--brand-ink)", "#f4b942", "#e8703a"];
 
 const PIECE_COUNT = 28;
 

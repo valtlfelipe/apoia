@@ -6,8 +6,9 @@ import {
   type SupportSettingsFormState,
 } from "@/app/admin/(dashboard)/action-state";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
 type SupportSettingsFormProps = {
@@ -41,36 +42,31 @@ export function SupportSettingsForm({ action, defaultValues }: SupportSettingsFo
   return (
     <form action={formAction} className="space-y-5">
       {state.error ? (
-        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+        <p role="alert" className="text-sm font-medium text-danger-ink">
           {state.error}
         </p>
       ) : null}
 
-      <div className="space-y-1.5">
-        <label htmlFor="amountPresets" className="text-sm font-medium">
-          Valores sugeridos
-        </label>
+      <Field
+        id="amountPresets"
+        label="Valores sugeridos"
+        error={state.fieldErrors?.amountPresets?.[0]}
+        hint="Em centavos, separados por vírgula — os atalhos de valor no formulário público."
+      >
         <Input
           id="amountPresets"
           name="amountPresets"
           defaultValue={defaultValues.amountPresets.join(",")}
           placeholder="500,1500,2500"
         />
-        <p className="text-xs text-[var(--color-text-muted)]">
-          Em centavos, separados por vírgula — os botões de valor rápido no formulário público.
-        </p>
-        {state.fieldErrors?.amountPresets ? (
-          <p className="text-xs text-red-600 dark:text-red-400">
-            {state.fieldErrors.amountPresets[0]}
-          </p>
-        ) : null}
-      </div>
+      </Field>
 
       <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <label htmlFor="minAmountCents" className="text-sm font-medium">
-            Valor mínimo (R$)
-          </label>
+        <Field
+          id="minAmountCents"
+          label="Valor mínimo (R$)"
+          error={state.fieldErrors?.minAmountCents?.[0]}
+        >
           <Input
             id="minAmountCents"
             name="minAmountCents"
@@ -78,16 +74,12 @@ export function SupportSettingsForm({ action, defaultValues }: SupportSettingsFo
             defaultValue={centsToReaisInput(defaultValues.minAmountCents)}
             placeholder="1,00"
           />
-          {state.fieldErrors?.minAmountCents ? (
-            <p className="text-xs text-red-600 dark:text-red-400">
-              {state.fieldErrors.minAmountCents[0]}
-            </p>
-          ) : null}
-        </div>
-        <div className="space-y-1.5">
-          <label htmlFor="maxAmountCents" className="text-sm font-medium">
-            Valor máximo (R$)
-          </label>
+        </Field>
+        <Field
+          id="maxAmountCents"
+          label="Valor máximo (R$)"
+          error={state.fieldErrors?.maxAmountCents?.[0]}
+        >
           <Input
             id="maxAmountCents"
             name="maxAmountCents"
@@ -95,69 +87,66 @@ export function SupportSettingsForm({ action, defaultValues }: SupportSettingsFo
             defaultValue={centsToReaisInput(defaultValues.maxAmountCents)}
             placeholder="10000,00"
           />
-          {state.fieldErrors?.maxAmountCents ? (
-            <p className="text-xs text-red-600 dark:text-red-400">
-              {state.fieldErrors.maxAmountCents[0]}
-            </p>
-          ) : null}
-        </div>
+        </Field>
       </div>
 
-      <Checkbox
-        id="defaultPublic"
-        name="defaultPublic"
-        defaultChecked={defaultValues.defaultPublic}
-        label="Aparecer na timeline por padrão"
-        description="Se o checkbox 'aparecer na timeline' do formulário público já começa marcado."
-      />
-      <Checkbox
-        id="showTotalCount"
-        name="showTotalCount"
-        defaultChecked={defaultValues.showTotalCount}
-        label="Mostrar número de apoios"
-        description="Exibe a contagem total de apoios acima da timeline pública."
-      />
-      <Checkbox
-        id="showTotalAmount"
-        name="showTotalAmount"
-        defaultChecked={defaultValues.showTotalAmount}
-        label="Mostrar total arrecadado"
-        description="Exibe a soma de todos os apoios acima da timeline — decisão de quem hospeda."
-      />
+      <div className="space-y-2">
+        <Switch
+          id="defaultPublic"
+          name="defaultPublic"
+          defaultChecked={defaultValues.defaultPublic}
+          label="Aparecer na timeline por padrão"
+          description="Se o botão “aparecer na timeline” do formulário público já começa ligado."
+        />
+        <Switch
+          id="showTotalCount"
+          name="showTotalCount"
+          defaultChecked={defaultValues.showTotalCount}
+          label="Mostrar número de apoios"
+          description="Exibe a contagem total no cabeçalho da timeline pública."
+        />
+        <Switch
+          id="showTotalAmount"
+          name="showTotalAmount"
+          defaultChecked={defaultValues.showTotalAmount}
+          label="Mostrar total arrecadado"
+          description="Exibe a soma de todos os apoios — decisão de quem hospeda."
+        />
+      </div>
 
-      <div className="space-y-1.5">
-        <label htmlFor="avatarStyle" className="text-sm font-medium">
-          Estilo do avatar
-        </label>
+      <Field
+        id="avatarStyle"
+        label="Estilo do avatar"
+        error={state.fieldErrors?.avatarStyle?.[0]}
+        hint={
+          <>
+            Qualquer estilo de{" "}
+            <a
+              href="https://www.dicebear.com/styles/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-brand-ink hover:underline"
+            >
+              dicebear.com/styles
+            </a>{" "}
+            (ex.: notionists, thumbs, bottts).
+          </>
+        }
+      >
         <Input
           id="avatarStyle"
           name="avatarStyle"
           defaultValue={defaultValues.avatarStyle}
           placeholder="notionists"
         />
-        <p className="text-xs text-[var(--color-text-muted)]">
-          Qualquer estilo de{" "}
-          <a
-            href="https://www.dicebear.com/styles/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline decoration-[var(--color-border)] decoration-2 underline-offset-2 hover:text-[var(--color-text)]"
-          >
-            dicebear.com/styles
-          </a>{" "}
-          (ex.: notionists, thumbs, bottts).
-        </p>
-        {state.fieldErrors?.avatarStyle ? (
-          <p className="text-xs text-red-600 dark:text-red-400">
-            {state.fieldErrors.avatarStyle[0]}
-          </p>
-        ) : null}
-      </div>
+      </Field>
 
-      <div className="space-y-1.5">
-        <label htmlFor="chargeExpiresInSeconds" className="text-sm font-medium">
-          Validade da cobrança Pix (segundos)
-        </label>
+      <Field
+        id="chargeExpiresInSeconds"
+        label="Validade da cobrança Pix (segundos)"
+        error={state.fieldErrors?.chargeExpiresInSeconds?.[0]}
+        hint="Ex.: 1800 = 30 minutos."
+      >
         <Input
           id="chargeExpiresInSeconds"
           name="chargeExpiresInSeconds"
@@ -166,18 +155,19 @@ export function SupportSettingsForm({ action, defaultValues }: SupportSettingsFo
           step={1}
           defaultValue={defaultValues.chargeExpiresInSeconds}
         />
-        <p className="text-xs text-[var(--color-text-muted)]">Ex.: 1800 = 30 minutos.</p>
-        {state.fieldErrors?.chargeExpiresInSeconds ? (
-          <p className="text-xs text-red-600 dark:text-red-400">
-            {state.fieldErrors.chargeExpiresInSeconds[0]}
-          </p>
-        ) : null}
-      </div>
+      </Field>
 
-      <div className="space-y-1.5">
-        <label htmlFor="thankYouMessage" className="text-sm font-medium">
-          Mensagem de agradecimento
-        </label>
+      <Field
+        id="thankYouMessage"
+        label="Mensagem de agradecimento"
+        error={state.fieldErrors?.thankYouMessage?.[0]}
+        hint={
+          <>
+            Mostrada no modal de sucesso após o pagamento confirmar. Aceita{" "}
+            <code>{"{amount}"}</code> como placeholder do valor pago.
+          </>
+        }
+      >
         <Textarea
           id="thankYouMessage"
           name="thankYouMessage"
@@ -185,16 +175,7 @@ export function SupportSettingsForm({ action, defaultValues }: SupportSettingsFo
           maxLength={300}
           defaultValue={defaultValues.thankYouMessage}
         />
-        <p className="text-xs text-[var(--color-text-muted)]">
-          Mostrada no modal de sucesso após o pagamento confirmar. Aceita <code>{"{amount}"}</code>{" "}
-          como placeholder do valor pago.
-        </p>
-        {state.fieldErrors?.thankYouMessage ? (
-          <p className="text-xs text-red-600 dark:text-red-400">
-            {state.fieldErrors.thankYouMessage[0]}
-          </p>
-        ) : null}
-      </div>
+      </Field>
 
       <Button type="submit" disabled={pending}>
         {pending ? "Salvando…" : "Salvar"}

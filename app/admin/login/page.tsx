@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { buttonClasses } from "@/components/ui/button";
+import { Card, CardBody } from "@/components/ui/card";
+import { cn } from "@/lib/cn";
 
 export const dynamic = "force-dynamic";
 
@@ -14,26 +17,37 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
   const { error } = await searchParams;
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-sm flex-col items-center justify-center gap-6 px-6 text-center">
-      <div className="space-y-1.5">
-        <h1 className="font-display text-2xl font-medium">Admin · Apoia</h1>
-        <p className="text-sm text-[var(--color-text-muted)]">
-          Entre com a conta Google autorizada para gerenciar produtos e apoios.
-        </p>
+    <main className="flex min-h-screen items-center justify-center px-5 py-10">
+      <div className="w-full max-w-sm">
+        <div className="mb-6 flex flex-col items-center gap-3 text-center">
+          <span className="flex size-11 items-center justify-center rounded-xl bg-brand text-xl font-bold text-on-brand">
+            a
+          </span>
+          <div className="space-y-1">
+            <h1 className="text-xl font-bold tracking-tight text-ink">Apoia · Admin</h1>
+            <p className="text-sm leading-relaxed text-ink-muted">
+              Entre com a conta Google autorizada para gerenciar produtos e apoios.
+            </p>
+          </div>
+        </div>
+
+        <Card>
+          <CardBody className="space-y-4">
+            {error ? (
+              <p
+                role="alert"
+                className="rounded-xl bg-danger-soft px-3 py-2.5 text-sm font-medium text-danger-ink"
+              >
+                Não foi possível entrar. Confirme que está usando a conta Google autorizada.
+              </p>
+            ) : null}
+
+            <a href="/admin/login/start" className={cn(buttonClasses("primary", "lg"), "w-full")}>
+              Entrar com Google
+            </a>
+          </CardBody>
+        </Card>
       </div>
-
-      {error ? (
-        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
-          Não foi possível entrar. Confirme que está usando a conta Google autorizada.
-        </p>
-      ) : null}
-
-      <a
-        href="/admin/login/start"
-        className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-accent)] px-5 py-2.5 text-sm font-semibold text-[var(--color-accent-contrast)] shadow-[0_1px_0_var(--color-accent-strong)] transition-all duration-150 hover:bg-[var(--color-accent-hover)] active:translate-y-px"
-      >
-        Entrar com Google
-      </a>
     </main>
   );
 }

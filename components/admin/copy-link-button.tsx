@@ -18,7 +18,7 @@ export function CopyLinkButton({ url }: { url: string }) {
   }, [url]);
 
   return (
-    <Button type="button" variant="secondary" className="px-3 py-1.5 text-xs" onClick={handleCopy}>
+    <Button type="button" variant="secondary" size="sm" onClick={handleCopy}>
       {copied ? "Link copiado ✓" : "Copiar link"}
     </Button>
   );

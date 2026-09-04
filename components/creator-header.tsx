@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { ThemeToggle } from "@/components/theme-toggle";
 import type { Creator } from "@/lib/config/creator";
 
 type CreatorHeaderProps = {
@@ -13,38 +14,37 @@ export function CreatorHeader({ creator }: CreatorHeaderProps) {
   const avatarSrc = creator.avatarUrl ?? "/api/avatar/creator";
 
   return (
-    <header className="flex items-center gap-4">
-      <Image
-        src={avatarSrc}
-        alt=""
-        width={64}
-        height={64}
-        unoptimized
-        className="h-16 w-16 shrink-0 rounded-full border-2 border-[var(--color-surface)] bg-[var(--color-surface-2)] shadow-[0_0_0_1px_var(--color-border)]"
-      />
-      <div className="min-w-0">
-        <h1 className="font-display text-xl font-medium text-[var(--color-text)]">
-          {creator.name}
-        </h1>
-        {creator.tagline ? (
-          <p className="text-sm text-[var(--color-text-muted)]">{creator.tagline}</p>
-        ) : null}
-        {creator.links.length > 0 ? (
-          <nav className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-            {creator.links.map((link) => (
-              <a
-                key={link.url}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs font-medium text-[var(--color-text-muted)] underline decoration-[var(--color-border)] decoration-2 underline-offset-2 transition-colors hover:text-[var(--color-accent-strong)] hover:decoration-[var(--color-accent)]"
-              >
-                {link.label}
-              </a>
-            ))}
-          </nav>
-        ) : null}
+    <header className="flex items-start justify-between gap-4">
+      <div className="flex min-w-0 items-center gap-3.5">
+        <Image
+          src={avatarSrc}
+          alt=""
+          width={56}
+          height={56}
+          unoptimized
+          className="size-14 shrink-0 rounded-full bg-subtle ring-1 ring-line"
+        />
+        <div className="min-w-0">
+          <h1 className="truncate text-lg font-bold tracking-tight text-ink">{creator.name}</h1>
+          {creator.tagline ? <p className="text-sm text-ink-muted">{creator.tagline}</p> : null}
+          {creator.links.length > 0 ? (
+            <nav className="mt-2 flex flex-wrap gap-1.5">
+              {creator.links.map((link) => (
+                <a
+                  key={link.url}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-lg bg-subtle px-2 py-1 text-xs font-semibold text-ink-muted transition-colors hover:bg-brand-soft hover:text-brand-ink"
+                >
+                  {link.label}
+                </a>
+              ))}
+            </nav>
+          ) : null}
+        </div>
       </div>
+      <ThemeToggle />
     </header>
   );
 }

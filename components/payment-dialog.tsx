@@ -132,7 +132,7 @@ export function PaymentDialog({
     <dialog
       ref={dialogRef}
       onClose={handleDialogClose}
-      className="shadow-card w-[min(23rem,calc(100vw-2rem))] overflow-hidden rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-0 text-[var(--color-text)] backdrop:bg-transparent"
+      className="w-[min(23rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-line bg-surface p-0 text-ink shadow-pop backdrop:bg-transparent"
     >
       {charge ? (
         <div className="p-6">
@@ -148,14 +148,14 @@ export function PaymentDialog({
             <div className="flex flex-col items-center gap-4">
               <div className="flex w-full items-start justify-between">
                 <div>
-                  <p className="font-display text-2xl font-medium">
+                  <p className="text-2xl font-bold tracking-tight tabular-nums">
                     {formatCents(charge.amountCents)}
                   </p>
-                  <p className="text-xs text-[var(--color-text-muted)]">Escaneie para apoiar</p>
+                  <p className="text-xs text-ink-muted">Escaneie para apoiar</p>
                 </div>
                 <div className="flex items-center gap-2">
                   {secondsLeft !== null ? (
-                    <span className="rounded-full bg-[var(--color-surface-2)] px-2.5 py-1 text-xs font-medium text-[var(--color-text-muted)] tabular-nums">
+                    <span className="rounded-lg bg-subtle px-2 py-1 text-xs font-semibold text-ink-muted tabular-nums">
                       {formatCountdown(secondsLeft)}
                     </span>
                   ) : null}
@@ -163,7 +163,7 @@ export function PaymentDialog({
                     type="button"
                     onClick={() => dialogRef.current?.close()}
                     aria-label="Fechar"
-                    className="flex h-7 w-7 items-center justify-center rounded-full text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
+                    className="flex size-8 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-subtle hover:text-ink"
                   >
                     <svg
                       viewBox="0 0 24 24"
@@ -179,7 +179,7 @@ export function PaymentDialog({
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-[var(--color-border)] bg-white p-4">
+              <div className="rounded-xl border border-line bg-white p-4">
                 <Image
                   src={charge.qrCodeImage}
                   alt="QR Code Pix"
@@ -193,10 +193,10 @@ export function PaymentDialog({
                 {copied ? "Código copiado ✓" : "Copiar código Pix"}
               </Button>
 
-              <div className="flex items-center gap-2 border-t border-[var(--color-border)] pt-4 text-xs text-[var(--color-text-muted)]">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--color-accent)] opacity-60" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--color-accent)]" />
+              <div className="flex w-full items-center justify-center gap-2 border-t border-line pt-4 text-xs text-ink-muted">
+                <span className="relative flex size-2">
+                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-brand opacity-60" />
+                  <span className="relative inline-flex size-2 rounded-full bg-brand" />
                 </span>
                 Aguardando confirmação do pagamento…
               </div>
@@ -223,7 +223,7 @@ function SuccessState({
     <div className="animate-fade-in flex flex-col items-center gap-3 py-4 text-center">
       <ConfettiBurst side="left" />
       <ConfettiBurst side="right" />
-      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--color-accent)]/15 text-[var(--color-accent-strong)]">
+      <div className="flex size-14 items-center justify-center rounded-full bg-brand-soft text-brand-ink">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -236,8 +236,8 @@ function SuccessState({
           <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
         </svg>
       </div>
-      <h2 className="font-display text-xl font-medium">Recebido!</h2>
-      <p className="text-sm text-[var(--color-text-muted)]">{message}</p>
+      <h2 className="text-xl font-bold tracking-tight">Recebido!</h2>
+      <p className="text-sm text-ink-muted">{message}</p>
       <Button type="button" onClick={onClose} className="mt-2">
         Fechar
       </Button>
@@ -248,8 +248,8 @@ function SuccessState({
 function ExpiredState({ onClose }: { onClose: () => void }) {
   return (
     <div className="animate-fade-in flex flex-col items-center gap-3 py-4 text-center">
-      <h2 className="font-display text-xl font-medium">Cobrança expirada</h2>
-      <p className="text-sm text-[var(--color-text-muted)]">
+      <h2 className="text-xl font-bold tracking-tight">Cobrança expirada</h2>
+      <p className="text-sm text-ink-muted">
         Esse código Pix não é mais válido. Feche esta janela e gere um novo apoio.
       </p>
       <Button type="button" variant="secondary" onClick={onClose} className="mt-2">

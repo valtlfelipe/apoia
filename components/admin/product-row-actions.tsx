@@ -24,7 +24,7 @@ export function ProductRowActions({ slug, url }: { slug: string; url: string }) 
         <form ref={formRef} action={deleteAction} />
         <ConfirmDialog
           triggerLabel="Excluir"
-          triggerClassName="px-3 py-1.5 text-xs text-red-600 dark:text-red-400"
+          triggerClassName="text-danger-ink hover:bg-danger-soft hover:text-danger-ink"
           title={`Excluir "${slug}"?`}
           description="Essa ação não pode ser desfeita."
           confirmLabel="Excluir"
@@ -33,7 +33,7 @@ export function ProductRowActions({ slug, url }: { slug: string; url: string }) 
         />
       </div>
       {deleteState.error ? (
-        <p role="alert" className="text-xs text-red-600 dark:text-red-400">
+        <p role="alert" className="text-xs font-medium text-danger-ink">
           {deleteState.error}
         </p>
       ) : null}

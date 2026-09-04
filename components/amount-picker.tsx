@@ -5,86 +5,94 @@ import { formatCents, parseReaisToCents } from "@/lib/format";
 
 type AmountPickerProps = {
   presets: number[];
-  isCustomMode: boolean;
-  selectedPresetCents: number | null;
-  customValueReais: string;
+  valueReais: string;
   minCents: number;
   maxCents: number;
-  onSelectPreset: (cents: number) => void;
-  onCustomChange: (value: string) => void;
+  onChange: (value: string) => void;
 };
 
+/** "5", "15", "2,50" — the amount without "R$", which the field already shows. */
+function presetLabel(cents: number): string {
+  return cents % 100 === 0 ? String(cents / 100) : (cents / 100).toFixed(2).replace(".", ",");
+}
+
+/** Cents as the field's own text ("500" → "5,00"), readable back by parseReaisToCents. */
+export function amountFieldValue(cents: number): string {
+  return (cents / 100).toFixed(2).replace(".", ",");
+}
+
+/**
+ * One amount field with the suggested values as shortcuts inside it. This
+ * used to be two separate controls (a row of preset pills *and* a
+ * "outro valor" field) kept in sync by an `isCustomMode` flag; a preset now
+ * just writes into the same field everyone types in, so there's one value and
+ * no mode to be in.
+ */
 export function AmountPicker({
   presets,
-  isCustomMode,
-  selectedPresetCents,
-  customValueReais,
+  valueReais,
   minCents,
   maxCents,
-  onSelectPreset,
-  onCustomChange,
+  onChange,
 }: AmountPickerProps) {
-  const parsedCustom = isCustomMode ? parseReaisToCents(customValueReais) : null;
+  const cents = parseReaisToCents(valueReais);
   const outOfRange =
-    parsedCustom !== null && customValueReais.trim() !== ""
-      ? parsedCustom < minCents
+    cents !== null && valueReais.trim() !== ""
+      ? cents < minCents
         ? "min"
-        : parsedCustom > maxCents
+        : cents > maxCents
           ? "max"
           : null
       : null;
 
   return (
-    <div className="space-y-2.5">
-      <span className="block text-sm font-medium text-[var(--color-text)]">
-        Quanto vale um apoio?
-      </span>
-      <div className="flex flex-wrap gap-2">
-        {presets.map((cents) => {
-          const active = !isCustomMode && selectedPresetCents === cents;
-          return (
-            <button
-              key={cents}
-              type="button"
-              onClick={() => onSelectPreset(cents)}
-              aria-pressed={active}
-              className={cn(
-                "rounded-full border px-4 py-2 text-sm font-semibold transition-all",
-                active
-                  ? "border-[var(--color-accent)] bg-[var(--color-accent)] text-[var(--color-accent-contrast)]"
-                  : "border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] hover:border-[var(--color-accent)]",
-              )}
-            >
-              {formatCents(cents)}
-            </button>
-          );
-        })}
+    <div className="space-y-2">
+      <span className="block text-sm font-medium text-ink">Quanto vale um apoio?</span>
+
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-transparent bg-subtle p-1.5 pl-3.5 transition-colors focus-within:border-brand focus-within:bg-surface focus-within:ring-2 focus-within:ring-brand/20">
+        <div className="flex min-w-[7rem] flex-1 items-baseline gap-1.5">
+          <span className="text-sm font-semibold text-ink-muted">R$</span>
+          <input
+            type="text"
+            inputMode="decimal"
+            aria-label="Valor do apoio em reais"
+            placeholder="0,00"
+            value={valueReais}
+            onChange={(event) => onChange(event.target.value)}
+            className="w-full min-w-0 bg-transparent py-1.5 text-[15px] font-semibold text-ink tabular-nums outline-none placeholder:font-normal placeholder:text-ink-muted"
+          />
+        </div>
+
+        <div className="flex flex-wrap gap-1">
+          {presets.map((preset) => {
+            const active = cents === preset;
+            return (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => onChange(amountFieldValue(preset))}
+                aria-pressed={active}
+                aria-label={formatCents(preset)}
+                className={cn(
+                  "h-8 rounded-lg px-2.5 text-sm font-semibold tabular-nums transition-colors",
+                  active
+                    ? "bg-brand text-on-brand"
+                    : "bg-surface text-ink-muted hover:text-ink ring-1 ring-line",
+                )}
+              >
+                {presetLabel(preset)}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      <div
-        className={cn(
-          "flex items-center rounded-full border pl-4 pr-1 transition-colors",
-          isCustomMode
-            ? "border-[var(--color-accent)] bg-[var(--color-accent)]/10"
-            : "border-dashed border-[var(--color-border)] bg-[var(--color-surface)]",
-        )}
-      >
-        <span className="text-sm text-[var(--color-text-muted)]">R$</span>
-        <input
-          type="text"
-          inputMode="decimal"
-          placeholder="outro valor"
-          value={customValueReais}
-          onFocus={() => onCustomChange(customValueReais)}
-          onChange={(event) => onCustomChange(event.target.value)}
-          className="w-full bg-transparent px-1.5 py-2.5 text-sm font-semibold text-[var(--color-text)] outline-none placeholder:font-normal placeholder:text-[var(--color-text-muted)]"
-        />
-      </div>
-
-      {outOfRange === "min" ? (
-        <p className="text-xs font-medium text-red-500">Valor mínimo: {formatCents(minCents)}</p>
-      ) : outOfRange === "max" ? (
-        <p className="text-xs font-medium text-red-500">Valor máximo: {formatCents(maxCents)}</p>
+      {outOfRange ? (
+        <p className="text-xs font-medium text-danger-ink">
+          {outOfRange === "min"
+            ? `Valor mínimo: ${formatCents(minCents)}`
+            : `Valor máximo: ${formatCents(maxCents)}`}
+        </p>
       ) : null}
     </div>
   );

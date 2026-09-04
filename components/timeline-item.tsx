@@ -5,29 +5,30 @@ import type { PublicSupport } from "@/lib/supports/public";
 
 export function TimelineItem({ item }: { item: PublicSupport }) {
   return (
-    <li className="flex gap-3 border-b border-[var(--color-border)] py-5 last:border-none">
+    <li className="flex gap-3 px-5 py-4 sm:px-6">
       <Image
         src={`/api/avatar/${item.id}`}
         alt=""
-        width={40}
-        height={40}
+        width={36}
+        height={36}
         unoptimized
-        className="h-10 w-10 shrink-0 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-2)]"
+        className="size-9 shrink-0 rounded-full bg-subtle ring-1 ring-line"
       />
       <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-          <span className="font-medium text-[var(--color-text)]">{item.name}</span>
-          <span className="rounded-full bg-[var(--color-accent)]/10 px-2 py-0.5 text-xs font-semibold text-[var(--color-accent-strong)]">
+        <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm">
+          <span className="font-semibold text-ink">{item.name}</span>
+          <span className="text-ink-muted">apoiou com</span>
+          <span className="font-semibold text-brand-ink tabular-nums">
             {formatCents(item.amountCents)}
           </span>
-          {item.product ? <Badge>{item.product.name}</Badge> : null}
-          <span className="text-xs text-[var(--color-text-muted)]">
+          {item.product ? <Badge tone="neutral">{item.product.name}</Badge> : null}
+          <span className="text-xs text-ink-muted">
             {formatRelativeTime(new Date(item.paidAt))}
           </span>
         </div>
         {item.message ? (
-          <p className="font-display mt-1.5 text-[15px] text-[var(--color-text)] italic">
-            “{item.message}”
+          <p className="mt-2 rounded-xl rounded-tl-sm bg-subtle px-3 py-2 text-sm leading-relaxed text-ink">
+            {item.message}
           </p>
         ) : null}
       </div>

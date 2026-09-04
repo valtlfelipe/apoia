@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { updateProductAction } from "@/app/admin/(dashboard)/actions";
+import { PageHeader } from "@/components/admin/page-header";
 import { ProductForm } from "@/components/admin/product-form";
+import { Card, CardBody } from "@/components/ui/card";
 import { getProductRow } from "@/lib/products/repo";
 
 type EditProductPageProps = {
@@ -23,20 +25,24 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
   if (!product) notFound();
 
   return (
-    <section className="max-w-lg space-y-6">
-      <h2 className="font-display text-lg font-medium">Editar {product.name}</h2>
-      <ProductForm
-        action={updateProductAction.bind(null, slug)}
-        defaultValues={{
-          slug: product.slug,
-          name: product.name,
-          headline: product.headline ?? undefined,
-          description: product.description ?? undefined,
-          isActive: product.isActive,
-        }}
-        slugEditable={false}
-        submitLabel="Salvar alterações"
-      />
-    </section>
+    <div className="max-w-xl">
+      <PageHeader title={product.name} description={`Página pública em /${product.slug}.`} />
+      <Card>
+        <CardBody>
+          <ProductForm
+            action={updateProductAction.bind(null, slug)}
+            defaultValues={{
+              slug: product.slug,
+              name: product.name,
+              headline: product.headline ?? undefined,
+              description: product.description ?? undefined,
+              isActive: product.isActive,
+            }}
+            slugEditable={false}
+            submitLabel="Salvar alterações"
+          />
+        </CardBody>
+      </Card>
+    </div>
   );
 }

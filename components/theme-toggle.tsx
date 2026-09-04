@@ -57,26 +57,19 @@ export function ThemeToggle() {
   // client render matches the server's HTML exactly (no hydration mismatch,
   // no icon that briefly shows the wrong mode before localStorage is read).
   if (!mounted) {
-    return <div className="h-9 w-9" aria-hidden="true" />;
+    return <div className="size-9" aria-hidden="true" />;
   }
 
   return (
-    <div className="group/tt relative inline-flex">
-      <button
-        type="button"
-        onClick={cycle}
-        aria-label={`${LABELS[mode]} — clique para alternar`}
-        className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)]"
-      >
-        {mode === "system" ? <SystemIcon /> : mode === "light" ? <SunIcon /> : <MoonIcon />}
-      </button>
-      <span
-        role="tooltip"
-        className="pointer-events-none absolute top-full right-0 z-10 mt-2 translate-y-[-2px] rounded-lg bg-[var(--color-text)] px-2.5 py-1 text-xs font-medium whitespace-nowrap text-[var(--color-bg)] opacity-0 transition-all duration-150 group-hover/tt:translate-y-0 group-hover/tt:opacity-100 group-focus-within/tt:translate-y-0 group-focus-within/tt:opacity-100"
-      >
-        {LABELS[mode]}
-      </span>
-    </div>
+    <button
+      type="button"
+      onClick={cycle}
+      title={LABELS[mode]}
+      aria-label={`${LABELS[mode]} — clique para alternar`}
+      className="flex size-9 items-center justify-center rounded-xl text-ink-muted transition-colors hover:bg-subtle hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+    >
+      {mode === "system" ? <SystemIcon /> : mode === "light" ? <SunIcon /> : <MoonIcon />}
+    </button>
   );
 }
 

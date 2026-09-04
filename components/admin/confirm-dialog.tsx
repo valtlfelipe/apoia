@@ -35,6 +35,7 @@ export function ConfirmDialog({
       <Button
         type="button"
         variant="ghost"
+        size="sm"
         disabled={pending}
         className={triggerClassName}
         onClick={() => dialogRef.current?.showModal()}
@@ -43,12 +44,12 @@ export function ConfirmDialog({
       </Button>
       <dialog
         ref={dialogRef}
-        className="shadow-card w-[min(22rem,calc(100vw-2rem))] rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 text-[var(--color-text)] backdrop:bg-transparent"
+        className="w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-line bg-surface p-6 text-ink shadow-pop backdrop:bg-transparent"
       >
         <div className="space-y-4">
           <div className="space-y-1">
-            <h3 className="font-display text-lg font-medium">{title}</h3>
-            <p className="text-sm text-[var(--color-text-muted)]">{description}</p>
+            <h3 className="text-base font-bold tracking-tight">{title}</h3>
+            <p className="text-sm text-ink-muted">{description}</p>
           </div>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="secondary" onClick={() => dialogRef.current?.close()}>
@@ -56,7 +57,7 @@ export function ConfirmDialog({
             </Button>
             <Button
               type="button"
-              className="bg-red-600 text-white shadow-none hover:bg-red-700"
+              variant="danger"
               onClick={() => {
                 dialogRef.current?.close();
                 onConfirm();

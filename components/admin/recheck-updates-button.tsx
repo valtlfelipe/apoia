@@ -15,7 +15,7 @@ export function RecheckUpdatesButton() {
   const { pending } = useFormStatus();
 
   return (
-    <Button type="submit" variant="secondary" disabled={pending} className="px-4 py-2 text-xs">
+    <Button type="submit" variant="secondary" size="sm" disabled={pending}>
       <RefreshIcon spinning={pending} />
       {pending ? "Verificando…" : "Verificar novamente"}
     </Button>
@@ -26,7 +26,7 @@ function RefreshIcon({ spinning }: { spinning: boolean }) {
   return (
     <svg
       viewBox="0 0 24 24"
-      className={spinning ? "h-3.5 w-3.5 animate-spin" : "h-3.5 w-3.5"}
+      className={spinning ? "size-3.5 animate-spin" : "size-3.5"}
       fill="none"
       stroke="currentColor"
       strokeWidth={2}
