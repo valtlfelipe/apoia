@@ -31,7 +31,7 @@ Self-hosted: roda no seu servidor, com a sua conta Pix.
 
 ## Deploy
 
-Só Docker. Não precisa clonar nada nem instalar Node.
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/apoia?referralCode=ca9X8b&utm_medium=integration&utm_source=template&utm_campaign=generic)
 
 ```bash
 docker run -d \

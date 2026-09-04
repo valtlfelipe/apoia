@@ -2,6 +2,14 @@
 
 Todas as mudanças relevantes serão registradas aqui. O formato segue Keep a Changelog e o projeto pretende usar versionamento semântico.
 
+## [Unreleased]
+
+### Fixed
+
+- **A página não funcionava em produção.** A Content-Security-Policy fixava `script-src 'self'`, o que bloqueia os dois `<script>` inline que o Next emite em toda página (bootstrap e payload RSC). Sem eles o React não hidratava: formulário de apoio, seletor de valor, botão de tema, "carregar mais" e o modal do Pix ficavam todos mortos no site publicado — só o HTML do servidor aparecia. Em desenvolvimento não dava, porque a política de dev incluía `'unsafe-inline'`. A CSP agora sai de `proxy.ts` com um nonce por requisição, que o Next carimba sozinho nos próprios scripts.
+- O login do admin devolvia o navegador para `https://0.0.0.0:8080/admin` atrás de um proxy reverso (Railway, Fly, nginx): três redirects montavam a URL a partir de `request.url`, que nesse caso é o endereço em que o container escuta, não o público. Agora saem de `APOIA_SITE_URL`, a mesma fonte que o `redirectUri` do OAuth já usava. O logout tinha o mesmo defeito.
+- `interest-cohort` saiu do `Permissions-Policy` — o FLoC foi removido do Chrome, e a diretiva só rendia um aviso "Unrecognized feature" no console a cada page load.
+
 ## [1.0.2] - 2026-09-04
 
 ### Fixed
