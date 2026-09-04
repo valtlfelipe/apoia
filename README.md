@@ -182,6 +182,9 @@ boot recusa configuração inválida). É por ele que se configura:
   "aparecer como anônimo" na timeline pública — com um botão para ocultar (ou
   devolver) alguém da vitrine. Ver [Privacidade e segurança](#privacidade-e-segurança)
   abaixo.
+- **Sobre**: versão instalada (vem automaticamente da tag da release — builds
+  locais mostram "dev"), checagem de nova versão no GitHub, e links para apoiar o
+  projeto, ver o repositório, reportar bug ou sugerir funcionalidade.
 
 O login usa o Google via [shoo.dev](https://shoo.dev), um broker de autenticação
 minimalista: você clica em "Entrar com Google", ele confirma sua identidade e

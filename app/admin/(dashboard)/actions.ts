@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import type {
@@ -13,6 +13,7 @@ import { requireAdmin } from "@/lib/auth/admin";
 import { getProduct } from "@/lib/config/products";
 import { createProductRow, deleteProductRow, updateProductRow } from "@/lib/products/repo";
 import { productInputSchema, productUpdateSchema } from "@/lib/products/schema";
+import { UPDATES_CACHE_TAG } from "@/lib/project";
 import { updateCreatorSettings, updateSupportSettings } from "@/lib/settings/repo";
 import { creatorSettingsSchema, supportSettingsSchema } from "@/lib/settings/schema";
 import { setSupportPublic } from "@/lib/supports/admin";
@@ -179,4 +180,17 @@ export async function updateSupportSettingsAction(
   revalidatePath("/[product]", "page");
 
   return { error: null };
+}
+
+/**
+ * Bypasses the one-hour cache on the GitHub release lookup in
+ * lib/project.ts, so "Verificar novamente" on /admin/about reflects a
+ * release published moments ago instead of waiting out the cache. A
+ * read-your-own-click case, so updateTag (not revalidateTag) — the next
+ * render should wait for the fresh check, not serve the stale one.
+ */
+export async function recheckUpdatesAction() {
+  await requireAdmin();
+
+  updateTag(UPDATES_CACHE_TAG);
 }

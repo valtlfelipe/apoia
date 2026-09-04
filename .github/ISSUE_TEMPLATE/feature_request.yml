@@ -1,0 +1,32 @@
+name: Sugerir uma funcionalidade
+description: Proponha uma melhoria para o apoia e conte como ela ajudaria você.
+title: "[Sugestão]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Antes de enviar, confira se a ideia já está nas [issues existentes](https://github.com/valtlfelipe/apoia/issues).
+  - type: textarea
+    id: problem
+    attributes:
+      label: Qual problema você quer resolver?
+      description: Descreva uma situação em que o apoia poderia ajudar mais.
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Como você imagina a melhoria?
+      description: Explique o que gostaria de fazer e como isso ajudaria.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Você já tentou alguma alternativa?
+      description: Opcional. Conte como resolve isso hoje ou que outras soluções considerou.
+  - type: textarea
+    id: context
+    attributes:
+      label: Exemplos ou contexto adicional
+      description: Opcional. Adicione referências, imagens ou detalhes que ajudem a explicar a ideia.

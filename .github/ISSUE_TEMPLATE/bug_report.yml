@@ -1,0 +1,62 @@
+name: Reportar um bug
+description: Conte o que não está funcionando como esperado no apoia.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Antes de enviar, confira se o problema já foi relatado nas [issues existentes](https://github.com/valtlfelipe/apoia/issues).
+        Se incluir imagens ou logs, remova tokens, segredos e dados pessoais (seus ou de apoiadores).
+  - type: input
+    id: version
+    attributes:
+      label: Versão do apoia
+      description: Copie a versão exibida em Admin → Sobre. Se aparecer "dev", informe isso aqui.
+      placeholder: "Ex.: v0.1.0 ou dev"
+    validations:
+      required: true
+  - type: dropdown
+    id: installation
+    attributes:
+      label: Como você rodou o apoia?
+      options:
+        - Docker Compose
+        - Instalação manual / desenvolvimento
+        - Outro
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Navegador e dispositivo
+      placeholder: "Ex.: Safari no iPhone, Chrome no Windows"
+  - type: textarea
+    id: problem
+    attributes:
+      label: O que aconteceu?
+      description: Descreva o problema e a mensagem de erro, se houver.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Como reproduzir?
+      description: Liste os passos para que outra pessoa consiga encontrar o mesmo problema.
+      placeholder: |
+        1. Abra a página…
+        2. Clique em…
+        3. Preencha…
+        4. Observe…
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: O que você esperava que acontecesse?
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Imagens, logs ou contexto adicional
+      description: Opcional. Adicione apenas o que ajudar a entender o problema, sem informações privadas.

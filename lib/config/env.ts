@@ -39,6 +39,14 @@ const envSchema = z
     // token) — generate with `openssl rand -base64 32`.
     APOIA_ADMIN_EMAIL: z.string().email(),
     APOIA_ADMIN_SECRET: z.string().min(32),
+
+    // --- Version ---
+    // Not something you configure — baked into the image at build time by
+    // .github/workflows/release.yml (from the git tag that triggered the
+    // release, see Dockerfile). Local dev and hand-built images default to
+    // "dev", shown as such on /admin/about (see lib/project.ts), which also
+    // skips comparing it against the latest release.
+    APOIA_VERSION: z.string().trim().min(1).default("dev"),
   })
   .superRefine((env, ctx) => {
     if (env.PIX_PROVIDER === "woovi" && !env.WOOVI_APP_ID) {

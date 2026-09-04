@@ -72,6 +72,8 @@ jobs:
         with:
           context: .
           platforms: ${{ matrix.platform }}
+          build-args: |
+            APOIA_VERSION=${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}
           labels: ${{ steps.meta.outputs.labels }}
           provenance: false
           sbom: false

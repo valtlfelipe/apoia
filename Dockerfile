@@ -31,6 +31,11 @@ RUN rm .env
 FROM node:24-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
+# Set by .github/workflows/release.yml from the git tag that triggered the
+# build; defaults to "dev" for local/manual builds. Read by lib/project.ts
+# to show the installed version and check for updates on /admin/about.
+ARG APOIA_VERSION=dev
+ENV APOIA_VERSION=${APOIA_VERSION}
 RUN groupadd --system --gid 1001 apoia && \
     useradd --system --uid 1001 --gid apoia apoia && \
     mkdir -p /data && chown apoia:apoia /data

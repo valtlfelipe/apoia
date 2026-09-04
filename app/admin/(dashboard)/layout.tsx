@@ -38,6 +38,12 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
           >
             Configurações
           </Link>
+          <Link
+            href="/admin/about"
+            className="rounded-full px-3.5 py-2 font-medium text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
+          >
+            Sobre
+          </Link>
         </nav>
         <div className="flex items-center gap-3">
           <span className="text-xs text-[var(--color-text-muted)]">{session.email}</span>
