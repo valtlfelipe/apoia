@@ -2,6 +2,12 @@
 
 Todas as mudanças relevantes serão registradas aqui. O formato segue Keep a Changelog e o projeto pretende usar versionamento semântico.
 
+## [1.0.5] - 2026-09-09
+
+### Fixed
+
+- Assinatura pública para validação de webhooks da Woovi.
+
 ## [1.0.4] - 2026-09-04
 
 ### Changed
