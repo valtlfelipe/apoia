@@ -29,7 +29,6 @@ const envSchema = z
     WOOVI_APP_ID: z.string().optional(),
     WOOVI_API_URL: z.string().url().default("https://api.woovi.com/api/v1"),
     WOOVI_WEBHOOK_TOKEN: z.string().optional(),
-    WOOVI_WEBHOOK_PUBLIC_KEY: z.string().optional(),
 
     // --- Admin ---
     // Required: /admin is the only way to configure the creator, products,
@@ -81,11 +80,13 @@ function loadEnv(): Env {
     throw new Error("Invalid environment configuration");
   }
 
-  // Vars retired in favor of /admin, grouped by where their replacement
-  // lives. Unknown keys are silently ignored by zod, so warn explicitly —
-  // someone upgrading with an old var still set would otherwise wonder why
-  // its value stopped taking effect.
+  // Vars that no longer do anything, each labeled with what took over.
+  // Unknown keys are silently ignored by zod, so warn explicitly — someone
+  // upgrading with an old var still set would otherwise wonder why its value
+  // stopped taking effect.
   const retiredVars: Record<string, string> = {
+    WOOVI_WEBHOOK_PUBLIC_KEY:
+      "Woovi's public key is now fetched from its /webhook/public-keys endpoint, so key rotations are picked up on their own",
     APOIA_PRODUCTS: "products are now managed at /admin/products",
     APOIA_CREATOR_NAME: "creator identity is now managed at /admin/settings",
     APOIA_CREATOR_SHORT_NAME: "creator identity is now managed at /admin/settings",

@@ -10,11 +10,17 @@ import type {
 
 const WOOVI_SIGNATURE_HEADER = "x-webhook-signature";
 
-// Woovi's production public key, used to verify the RSA signature on webhook
-// deliveries (see developers.woovi.com/docs/webhook/seguranca/webhook-signature-validation).
-// Overridable via WOOVI_WEBHOOK_PUBLIC_KEY for sandbox use or key rotation.
-const WOOVI_DEFAULT_PUBLIC_KEY_BASE64 =
-  "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlHZk1BMEdDU3FHU0liM0RRRUJBUVVBQTRHTkFEQ0JpUUtCZ1FDLytOdElranpldnZxRCtJM01NdjNiTFhEdApwdnhCalk0QnNSclNkY2EzcnRBd01jUllZdnhTbmQ3amFnVkxwY3RNaU94UU84aWVVQ0tMU1dIcHNNQWpPL3paCldNS2Jxb0c4TU5waS91M2ZwNnp6MG1jSENPU3FZc1BVVUcxOWJ1VzhiaXM1WloySVpnQk9iV1NwVHZKMGNuajYKSEtCQUE4MkpsbitsR3dTMU13SURBUUFCCi0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo=";
+// Woovi signs every webhook with its own private key and publishes the matching
+// public key on an unauthenticated endpoint, relative to whichever API base is
+// configured — so sandbox and production each get their own without a second
+// setting. Fetching it beats pinning it in source: when Woovi rotates the key,
+// the integration follows along on its own.
+// See developers.woovi.com/docs/webhook/seguranca/webhook-public-keys.
+const WOOVI_PUBLIC_KEYS_PATH = "/webhook/public-keys";
+
+// The endpoint answers with `Cache-Control: public, max-age=3600`, and the docs
+// are explicit that it must not be hit once per delivery.
+const PUBLIC_KEYS_TTL_MS = 60 * 60 * 1000;
 
 type WooviChargeStatus = "ACTIVE" | "COMPLETED" | "EXPIRED";
 
@@ -28,6 +34,10 @@ type WooviChargeResponse = {
     expiresDate?: string;
     identifier?: string;
   };
+};
+
+type WooviPublicKeysResponse = {
+  public_keys: { key: string; key_identifier: string; is_current: boolean }[];
 };
 
 type WooviWebhookPayload = {
@@ -151,29 +161,140 @@ async function getChargeStatus(ref: { correlationId: string }): Promise<SupportS
   return mapChargeStatus(data.charge.status);
 }
 
-async function verifyWebhook(rawBody: string, headers: Headers): Promise<boolean> {
-  const signature = headers.get(WOOVI_SIGNATURE_HEADER);
-  if (!signature) return false;
+let publicKeysCache: { keys: string[]; fetchedAt: number } | null = null;
+let publicKeysInFlight: Promise<string[]> | null = null;
 
-  if (env.WOOVI_WEBHOOK_TOKEN) {
-    const provided = headers.get("authorization") ?? "";
-    const expected = env.WOOVI_WEBHOOK_TOKEN;
-    const ok =
-      provided.length === expected.length &&
-      timingSafeEqual(Buffer.from(provided), Buffer.from(expected));
-    if (!ok) return false;
+async function fetchPublicKeys(): Promise<string[]> {
+  // Deliberately not `wooviFetch`: this endpoint takes no auth (the key is
+  // public by definition) and webhook verification often runs where the App ID
+  // isn't at hand.
+  const response = await fetch(`${env.WOOVI_API_URL}${WOOVI_PUBLIC_KEYS_PATH}`, {
+    signal: AbortSignal.timeout(10_000),
+  });
+
+  if (!response.ok) {
+    await throwWooviError(response, "public key lookup");
   }
 
+  const data = (await response.json()) as WooviPublicKeysResponse;
+
+  // Every key in the list, not just the `is_current` one: during a rotation
+  // Woovi publishes the outgoing and incoming keys together, and deliveries
+  // signed with the previous one are still in flight (or being retried) for as
+  // long as both are listed. Accepting only the current key reintroduces
+  // exactly the breakage that fetching the key is meant to avoid.
+  const keys = (data.public_keys ?? []).map((entry) => entry.key).filter(Boolean);
+  if (keys.length === 0) {
+    throw new Error("Woovi public key lookup returned an empty key list");
+  }
+
+  return keys;
+}
+
+async function getPublicKeys(): Promise<string[]> {
+  if (publicKeysCache && Date.now() - publicKeysCache.fetchedAt < PUBLIC_KEYS_TTL_MS) {
+    return publicKeysCache.keys;
+  }
+
+  // Share one request across concurrent deliveries — a burst of webhooks
+  // arriving on a cold cache shouldn't turn into a burst of key lookups.
+  publicKeysInFlight ??= fetchPublicKeys().finally(() => {
+    publicKeysInFlight = null;
+  });
+
   try {
-    const publicKeyBase64 = env.WOOVI_WEBHOOK_PUBLIC_KEY ?? WOOVI_DEFAULT_PUBLIC_KEY_BASE64;
-    const publicKeyPem = Buffer.from(publicKeyBase64, "base64").toString("ascii");
-    const verifier = createVerify("sha256");
-    verifier.update(Buffer.from(rawBody, "utf8"));
-    verifier.end();
-    return verifier.verify(publicKeyPem, signature, "base64");
+    const keys = await publicKeysInFlight;
+    publicKeysCache = { keys, fetchedAt: Date.now() };
+    return keys;
+  } catch (error) {
+    // The endpoint being briefly unreachable says nothing about whether this
+    // delivery is genuine, so keep verifying against the keys already held
+    // rather than dropping real payments. Only a cold cache leaves us with
+    // nothing to check against.
+    if (publicKeysCache) {
+      console.warn("Woovi public key refresh failed, verifying against cached keys:", error);
+      return publicKeysCache.keys;
+    }
+    throw error;
+  }
+}
+
+async function verifyWebhook(rawBody: string, headers: Headers): Promise<boolean> {
+  if (env.WOOVI_WEBHOOK_TOKEN) {
+    const provided = Buffer.from(headers.get("authorization") ?? "", "utf8");
+    const expected = Buffer.from(env.WOOVI_WEBHOOK_TOKEN, "utf8");
+    // Byte length, not string length: `timingSafeEqual` throws when the two
+    // differ, and a token with any non-ASCII character makes the two counts
+    // disagree — a throw here would surface as a 500, not a 401.
+    const ok = provided.length === expected.length && timingSafeEqual(provided, expected);
+    if (!ok) {
+      console.warn(
+        "Woovi webhook rejected: Authorization header does not match WOOVI_WEBHOOK_TOKEN",
+      );
+      return false;
+    }
+  }
+
+  const signature = headers.get(WOOVI_SIGNATURE_HEADER)?.trim();
+  if (!signature) {
+    console.warn(`Woovi webhook rejected: no ${WOOVI_SIGNATURE_HEADER} header`);
+    return false;
+  }
+
+  let publicKeys: string[];
+  try {
+    publicKeys = await getPublicKeys();
+  } catch (error) {
+    console.error("Woovi webhook rejected: could not load Woovi's public keys:", error);
+    return false;
+  }
+
+  // Verify the body exactly as it arrived. Parsing the JSON and re-serializing
+  // it to rebuild the payload reorders keys and changes spacing, so the bytes
+  // change and the signature stops matching — hence `rawBody`, and hence this
+  // running before `parseWebhook`.
+  const valid = publicKeys.some((publicKey) => {
+    try {
+      const verifier = createVerify("sha256");
+      verifier.update(Buffer.from(rawBody, "utf8"));
+      verifier.end();
+      return verifier.verify(publicKey, signature, "base64");
+    } catch {
+      return false;
+    }
+  });
+
+  if (!valid) {
+    console.warn(
+      `Woovi webhook rejected: ${WOOVI_SIGNATURE_HEADER} did not verify against any published key`,
+    );
+  }
+
+  return valid;
+}
+
+/**
+ * Registering a webhook URL on the Woovi dashboard fires a one-off test
+ * delivery — `{"data_criacao":…,"evento":"teste_webhook","event":<the event
+ * picked in the form>}` — and Woovi saves the URL only if it answers 200
+ * (developers.woovi.com/docs/webhook/webhook-test). That request carries no
+ * usable `x-webhook-signature`, so verifying it 401s and registration never
+ * completes. Acking it is inert: it names no charge, so there is nothing to
+ * process and nothing to gain by replaying it.
+ */
+function isRegistrationPing(rawBody: string): boolean {
+  let payload: { evento?: string; data_criacao?: string; charge?: unknown };
+  try {
+    payload = JSON.parse(rawBody);
   } catch {
     return false;
   }
+
+  // `data_criacao` also catches the shape in the docs, which omits `evento`.
+  // Neither field appears in a real event payload, but require the absence of
+  // `charge` too, so a genuine delivery can never take this path.
+  const looksLikePing = payload.evento === "teste_webhook" || payload.data_criacao !== undefined;
+  return looksLikePing && payload.charge === undefined;
 }
 
 function parseWebhook(rawBody: string): ParsedWebhookEvent | null {
@@ -220,6 +341,7 @@ export const wooviProvider: PixProvider = {
   id: "woovi",
   createCharge,
   getChargeStatus,
+  isRegistrationPing,
   verifyWebhook,
   parseWebhook,
   redactWebhookPayload,

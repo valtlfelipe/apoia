@@ -9,9 +9,9 @@ export const dynamic = "force-dynamic";
 
 /**
  * Receives webhook deliveries from the active Pix provider. Order matters:
- * read the raw body, verify its signature, THEN parse — never trust a
- * payload before it's verified. Idempotent via the `webhook_events` unique
- * key on (event, correlationId).
+ * read the raw body, ack the registration ping, verify the signature, THEN
+ * parse — never trust a payload before it's verified. Idempotent via the
+ * `webhook_events` unique key on (event, correlationId).
  */
 export async function POST(
   request: Request,
@@ -25,6 +25,14 @@ export async function POST(
   }
 
   const rawBody = await request.text();
+
+  // The ping a provider sends while registering the URL arrives unsigned and
+  // exists only to prove the endpoint is alive, so ack it with the empty 200
+  // Woovi's docs ask for. Verifying it would 401 and the registration would
+  // never complete — the payload names no charge, so nothing is processed.
+  if (provider.isRegistrationPing(rawBody)) {
+    return new Response(null, { status: 200 });
+  }
 
   const verified = await provider.verifyWebhook(rawBody, request.headers);
   if (!verified) {

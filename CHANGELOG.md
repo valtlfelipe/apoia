@@ -2,6 +2,32 @@
 
 Todas as mudanças relevantes serão registradas aqui. O formato segue Keep a Changelog e o projeto pretende usar versionamento semântico.
 
+## [Unreleased]
+
+### Fixed
+
+- O webhook de teste que a Woovi dispara ao cadastrar a URL agora responde `200`
+  em vez de `401`. Ele chega sem assinatura, e a Woovi só salva a URL se ela
+  responder `200` — era isso que impedia o cadastro do webhook.
+- Webhook recusado agora registra o motivo no log (falta de assinatura, token
+  divergente, ou assinatura que não confere contra nenhuma chave publicada), em
+  vez de só devolver um `401` mudo.
+- `WOOVI_WEBHOOK_TOKEN` com caractere não-ASCII derrubava a request com `500` em
+  vez de `401`, porque a comparação usava tamanho em caracteres onde o
+  `timingSafeEqual` exige tamanho em bytes.
+
+### Changed
+
+- A chave pública da Woovi passa a ser buscada em `/webhook/public-keys`, com
+  cache de 1 hora e aceitando todas as chaves da lista durante uma rotação, em
+  vez de ficar fixa no código. Se o endpoint estiver fora do ar, a chave em
+  cache continua valendo.
+
+### Removed
+
+- `WOOVI_WEBHOOK_PUBLIC_KEY`. A chave agora vem sempre da API; quem ainda tiver
+  a variável no `.env` recebe um aviso no boot dizendo o que a substituiu.
+
 ## [1.0.5] - 2026-09-09
 
 ### Fixed

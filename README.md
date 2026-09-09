@@ -103,7 +103,10 @@ Opcionais:
 | `PIX_PROVIDER` | `woovi` | Qual módulo de `lib/pix/providers` usar. |
 | `WOOVI_API_URL` | `https://api.woovi.com/api/v1` | Sandbox: `api.woovi-sandbox.com`. |
 | `WOOVI_WEBHOOK_TOKEN` | — | Token extra conferido no header `Authorization` do webhook. |
-| `WOOVI_WEBHOOK_PUBLIC_KEY` | — | Sobrescreve a chave pública que valida a assinatura do webhook (rotação de chave, sandbox). |
+
+A chave pública que valida a assinatura do webhook não é configurável: ela é
+buscada em `WOOVI_API_URL/webhook/public-keys` e mantida em cache por uma hora,
+então uma rotação de chave na Woovi é acompanhada sozinha.
 
 Lista completa e comentada em [`.env.example`](.env.example). Todo o resto — nome,
 avatar, links, projetos, valores sugeridos, mensagem de agradecimento — se

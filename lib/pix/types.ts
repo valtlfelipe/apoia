@@ -37,6 +37,14 @@ export interface PixProvider {
 
   getChargeStatus(ref: { correlationId: string }): Promise<SupportStatus>;
 
+  /**
+   * True when the body is the provider's URL-registration ping — the unsigned
+   * request a PSP fires at the endpoint to confirm it answers before saving the
+   * webhook. The route acks these with an empty 200 without verifying them, so
+   * only ever return true for a payload that carries nothing to act on.
+   */
+  isRegistrationPing(rawBody: string): boolean;
+
   /** Verifies the webhook came from this provider. Check BEFORE parsing. */
   verifyWebhook(rawBody: string, headers: Headers): Promise<boolean>;
 
