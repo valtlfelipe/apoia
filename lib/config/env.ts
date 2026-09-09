@@ -25,10 +25,16 @@ const envSchema = z
     DATABASE_PATH: z.string().min(1).default("./data/apoia.db"),
 
     // --- Pix ---
-    PIX_PROVIDER: z.enum(["woovi"]).default("woovi"),
+    PIX_PROVIDER: z.enum(["woovi", "abacatepay"]).default("woovi"),
     WOOVI_APP_ID: z.string().optional(),
     WOOVI_API_URL: z.string().url().default("https://api.woovi.com/api/v1"),
     WOOVI_WEBHOOK_TOKEN: z.string().optional(),
+    ABACATEPAY_API_KEY: z.string().optional(),
+    ABACATEPAY_API_URL: z.string().url().default("https://api.abacatepay.com/v2"),
+    ABACATEPAY_WEBHOOK_SECRET: z.string().optional(),
+    // Unlike Woovi's, this one stays: AbacatePay publishes no key endpoint to
+    // fetch from, so overriding it here is the only way through a rotation.
+    ABACATEPAY_WEBHOOK_PUBLIC_KEY: z.string().optional(),
 
     // --- Admin ---
     // Required: /admin is the only way to configure the creator, products,
@@ -54,6 +60,27 @@ const envSchema = z
         path: ["WOOVI_APP_ID"],
         message: "WOOVI_APP_ID is required when PIX_PROVIDER=woovi",
       });
+    }
+
+    if (env.PIX_PROVIDER === "abacatepay") {
+      if (!env.ABACATEPAY_API_KEY) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["ABACATEPAY_API_KEY"],
+          message: "ABACATEPAY_API_KEY is required when PIX_PROVIDER=abacatepay",
+        });
+      }
+      // Unlike Woovi's optional token, this one is mandatory: AbacatePay signs
+      // webhooks with a key it publishes in its own docs, so the query secret
+      // is the only thing that proves a delivery came from your account. See
+      // lib/pix/providers/abacatepay.ts.
+      if (!env.ABACATEPAY_WEBHOOK_SECRET) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["ABACATEPAY_WEBHOOK_SECRET"],
+          message: "ABACATEPAY_WEBHOOK_SECRET is required when PIX_PROVIDER=abacatepay",
+        });
+      }
     }
 
     for (const key of Object.keys(process.env)) {

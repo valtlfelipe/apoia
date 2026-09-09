@@ -219,9 +219,9 @@ async function getPublicKeys(): Promise<string[]> {
   }
 }
 
-async function verifyWebhook(rawBody: string, headers: Headers): Promise<boolean> {
+async function verifyWebhook(rawBody: string, request: Request): Promise<boolean> {
   if (env.WOOVI_WEBHOOK_TOKEN) {
-    const provided = Buffer.from(headers.get("authorization") ?? "", "utf8");
+    const provided = Buffer.from(request.headers.get("authorization") ?? "", "utf8");
     const expected = Buffer.from(env.WOOVI_WEBHOOK_TOKEN, "utf8");
     // Byte length, not string length: `timingSafeEqual` throws when the two
     // differ, and a token with any non-ASCII character makes the two counts
@@ -235,7 +235,7 @@ async function verifyWebhook(rawBody: string, headers: Headers): Promise<boolean
     }
   }
 
-  const signature = headers.get(WOOVI_SIGNATURE_HEADER)?.trim();
+  const signature = request.headers.get(WOOVI_SIGNATURE_HEADER)?.trim();
   if (!signature) {
     console.warn(`Woovi webhook rejected: no ${WOOVI_SIGNATURE_HEADER} header`);
     return false;

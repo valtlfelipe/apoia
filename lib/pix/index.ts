@@ -1,4 +1,5 @@
 import { env } from "@/lib/config/env";
+import { abacatePayProvider } from "@/lib/pix/providers/abacatepay";
 import { wooviProvider } from "@/lib/pix/providers/woovi";
 import type { PixProvider } from "@/lib/pix/types";
 
@@ -10,6 +11,7 @@ import type { PixProvider } from "@/lib/pix/types";
  */
 const providers: Record<string, PixProvider> = {
   woovi: wooviProvider,
+  abacatepay: abacatePayProvider,
 };
 
 let cached: PixProvider | undefined;

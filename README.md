@@ -90,9 +90,17 @@ Obrigatórias:
 | Variável | Descrição |
 |---|---|
 | `APOIA_SITE_URL` | URL pública desta instância. Usada nos metadados, no registro do webhook e como origin do login. |
-| `WOOVI_APP_ID` | App ID do painel da Woovi → *Applications*. **Nunca vai para o navegador.** |
 | `APOIA_ADMIN_EMAIL` | A única conta Google que entra no `/admin`. |
 | `APOIA_ADMIN_SECRET` | Assina o cookie de sessão do admin. Gere com `openssl rand -base64 32`. |
+
+Mais as do provedor de Pix escolhido em `PIX_PROVIDER` — só as dele, o outro
+bloco pode ficar vazio. **Nenhuma delas vai para o navegador.**
+
+| Provedor | Variável | Descrição |
+|---|---|---|
+| `woovi` | `WOOVI_APP_ID` | App ID do painel da Woovi → *Applications*. |
+| `abacatepay` | `ABACATEPAY_API_KEY` | Chave do painel da AbacatePay → *API keys*. |
+| `abacatepay` | `ABACATEPAY_WEBHOOK_SECRET` | Secret que autentica o webhook. Gere com `openssl rand -base64 32`. |
 
 Opcionais:
 
@@ -100,13 +108,17 @@ Opcionais:
 |---|---|---|
 | `APOIA_RATE_LIMIT_PER_MINUTE` | `5` | Cobranças criadas por IP, por minuto. |
 | `DATABASE_PATH` | `/data/apoia.db` no Docker | Arquivo SQLite. |
-| `PIX_PROVIDER` | `woovi` | Qual módulo de `lib/pix/providers` usar. |
+| `PIX_PROVIDER` | `woovi` | Qual módulo de `lib/pix/providers` usar: `woovi` ou `abacatepay`. |
 | `WOOVI_API_URL` | `https://api.woovi.com/api/v1` | Sandbox: `api.woovi-sandbox.com`. |
 | `WOOVI_WEBHOOK_TOKEN` | — | Token extra conferido no header `Authorization` do webhook. |
+| `ABACATEPAY_API_URL` | `https://api.abacatepay.com/v2` | O sandbox é decidido pela chave (devMode), não pela URL. |
+| `ABACATEPAY_WEBHOOK_PUBLIC_KEY` | — | Sobrescreve a chave HMAC publicada pela AbacatePay (rotação de chave). |
 
-A chave pública que valida a assinatura do webhook não é configurável: ela é
-buscada em `WOOVI_API_URL/webhook/public-keys` e mantida em cache por uma hora,
-então uma rotação de chave na Woovi é acompanhada sozinha.
+A chave pública que valida a assinatura do webhook da Woovi não aparece aí
+porque não é configurável: ela é buscada em `WOOVI_API_URL/webhook/public-keys`
+e mantida em cache por uma hora, então uma rotação de chave na Woovi é
+acompanhada sozinha. A AbacatePay não publica um endpoint equivalente — a chave
+dela é fixa e a mesma para todo mundo — daí a variável acima.
 
 Lista completa e comentada em [`.env.example`](.env.example). Todo o resto — nome,
 avatar, links, projetos, valores sugeridos, mensagem de agradecimento — se
@@ -135,6 +147,43 @@ configura no [`/admin`](#admin), não por variável de ambiente.
 
    Passo único por deploy — refaça só se `APOIA_SITE_URL` mudar. Dá pra fazer pelo
    painel da Woovi também; não existe script deste projeto que faça isso por você.
+
+## Configurando a AbacatePay
+
+1. Crie uma conta em [abacatepay.com](https://abacatepay.com) e gere uma **API key**
+   em *API keys*. Uma chave de *devMode* manda tudo pro sandbox — a URL é a mesma.
+2. Passe em `ABACATEPAY_API_KEY`, e gere um `ABACATEPAY_WEBHOOK_SECRET` com
+   `openssl rand -base64 32`.
+3. Com a instância no ar numa URL HTTPS pública, registre o webhook apontando pra
+   `$APOIA_SITE_URL/api/webhooks/abacatepay`:
+
+   ```bash
+   export ABACATEPAY_API_KEY="..."          # a mesma do deploy
+   export ABACATEPAY_WEBHOOK_SECRET="..."   # o mesmo do deploy
+   export APOIA_SITE_URL="https://seu-dominio.com"
+
+   curl -X POST "https://api.abacatepay.com/v2/webhooks/create" \
+     -H "Authorization: Bearer $ABACATEPAY_API_KEY" \
+     -H "Content-Type: application/json" \
+     -d "{\"name\":\"apoia\",\"endpoint\":\"$APOIA_SITE_URL/api/webhooks/abacatepay\",\"secret\":\"$ABACATEPAY_WEBHOOK_SECRET\",\"events\":[\"transparent.completed\"]}"
+   ```
+
+   Passo único por deploy — refaça só se `APOIA_SITE_URL` mudar. Dá pra fazer pelo
+   painel da AbacatePay também.
+
+Pra testar sem dar um Pix de verdade, com uma chave de *devMode*, pegue o `id` da
+cobrança (`pix_char_...`, na coluna *Referência* do `/admin/supports`) e simule o
+pagamento:
+
+```bash
+curl -X POST "https://api.abacatepay.com/v2/transparents/simulate-payment?id=pix_char_..." \
+  -H "Authorization: Bearer $ABACATEPAY_API_KEY"
+```
+
+Duas diferenças em relação à Woovi, ambas por limitação da API deles: não existe
+evento de expiração (uma cobrança que vence é pega pelo *polling*), e não há
+end-to-end id em pagamentos recebidos — o `/admin/supports` mostra o id da cobrança
+no lugar.
 
 O webhook é a fonte de verdade da confirmação. A página também faz *polling* de
 status como reforço, útil onde o webhook ainda não está configurado (dev local).
@@ -222,8 +271,10 @@ só ali.
 ## Adicionando outro provedor de Pix
 
 Toda a integração passa pela interface `PixProvider` (`lib/pix/types.ts`); nenhum
-componente de UI ou lógica de domínio referencia um provedor específico. Pra
-adicionar um:
+componente de UI ou lógica de domínio referencia um provedor específico — a Woovi e
+a AbacatePay são os dois que já existem, e servem de referência pros dois formatos
+possíveis de webhook (assinatura RSA no header vs. secret na query). Pra adicionar
+um:
 
 1. Crie `lib/pix/providers/<nome>.ts` implementando `PixProvider` (`createCharge`,
    `getChargeStatus`, `verifyWebhook`, `parseWebhook`, `redactWebhookPayload`).

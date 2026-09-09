@@ -2,6 +2,17 @@
 
 Todas as mudanças relevantes serão registradas aqui. O formato segue Keep a Changelog e o projeto pretende usar versionamento semântico.
 
+## [Unreleased]
+
+### Added
+
+- **Suporte à [AbacatePay](https://abacatepay.com) como provedor de Pix**, alternativa à Woovi: `PIX_PROVIDER="abacatepay"` mais `ABACATEPAY_API_KEY` e `ABACATEPAY_WEBHOOK_SECRET`. Mesma experiência de sempre — QR Code na modal, copia e cola, polling de status e webhook em `/api/webhooks/abacatepay`. Veja "Configurando a AbacatePay" no README. Um provedor por instância; nada muda pra quem já usa a Woovi.
+
+### Changed
+
+- A coluna "E2E ID (Pix)" da tabela de `/admin/supports` virou **"Referência"**: mostra o end-to-end id do Pix quando existe e, quando não, o id da cobrança no provedor. A AbacatePay não expõe E2E id em pagamentos recebidos (só em saques e transferências), e a Woovi também não devolve o dele nas cobranças confirmadas pelo polling de reforço — nesses casos a coluna ficava vazia.
+- A interface `PixProvider` (`lib/pix/types.ts`) mudou em três pontos, pra comportar provedores que não seguem o formato da Woovi: `verifyWebhook` recebe a `Request` inteira em vez de só os headers (a AbacatePay autentica por secret na query string), `getChargeStatus` recebe também o id da cobrança no provedor (a consulta de status da AbacatePay só aceita o id dela), e o evento devolvido por `parseWebhook` pode identificar a cobrança por qualquer um dos dois ids. Só afeta quem mantém um provedor próprio.
+
 ## [1.0.6] - 2026-09-09
 
 ### Fixed

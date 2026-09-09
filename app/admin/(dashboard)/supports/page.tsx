@@ -56,16 +56,27 @@ function WhenCell({ support }: { support: AdminSupport }) {
   );
 }
 
-function EndToEndIdCell({ endToEndId }: { endToEndId: string | null }) {
-  if (!endToEndId) {
+/**
+ * The best identifier we have for the payment. The Pix end-to-end id when the
+ * provider gave us one (Woovi, via webhook), otherwise the provider's own
+ * charge id — AbacatePay never exposes an E2E id for money coming in, and
+ * Woovi doesn't either when a charge is confirmed by the polling fallback.
+ */
+function PaymentReferenceCell({ support }: { support: AdminSupport }) {
+  const reference = support.endToEndId ?? support.providerChargeId;
+  if (!reference) {
     return <span className="text-ink-muted">—</span>;
   }
+  const isEndToEnd = support.endToEndId !== null;
   return (
     <div className="flex items-center gap-1">
-      <span title={endToEndId} className="font-mono text-xs text-ink-muted">
-        {truncateMiddle(endToEndId)}
+      <span title={reference} className="font-mono text-xs text-ink-muted">
+        {truncateMiddle(reference)}
       </span>
-      <CopyButton value={endToEndId} label="Copiar E2E ID" />
+      <CopyButton
+        value={reference}
+        label={isEndToEnd ? "Copiar E2E ID" : "Copiar ID da cobrança"}
+      />
     </div>
   );
 }
@@ -96,7 +107,7 @@ export default async function AdminSupportsPage({ searchParams }: SupportsPagePr
                   <th className="px-5 py-3 font-semibold">Status</th>
                   <th className="px-5 py-3 font-semibold">Produto</th>
                   <th className="px-5 py-3 font-semibold">Quando</th>
-                  <th className="px-5 py-3 font-semibold">E2E ID (Pix)</th>
+                  <th className="px-5 py-3 font-semibold">Referência</th>
                   <th className="px-5 py-3 font-semibold">
                     <span className="sr-only">Ações</span>
                   </th>
@@ -125,7 +136,7 @@ export default async function AdminSupportsPage({ searchParams }: SupportsPagePr
                       <WhenCell support={support} />
                     </td>
                     <td className="px-5 py-3.5 align-top">
-                      <EndToEndIdCell endToEndId={support.endToEndId} />
+                      <PaymentReferenceCell support={support} />
                     </td>
                     <td className="px-5 py-3.5 align-top">
                       <DropdownMenu label="Ações">

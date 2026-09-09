@@ -34,7 +34,7 @@ export async function POST(
     return new Response(null, { status: 200 });
   }
 
-  const verified = await provider.verifyWebhook(rawBody, request.headers);
+  const verified = await provider.verifyWebhook(rawBody, request);
   if (!verified) {
     return new Response("Invalid signature", { status: 401 });
   }
@@ -45,7 +45,10 @@ export async function POST(
     return new Response("ok", { status: 200 });
   }
 
-  const eventKey = `${parsed.event}:${parsed.correlationId}`;
+  // Whichever id the provider gave us — `parseWebhook` guarantees at least one
+  // — as long as it's derived the same way on every delivery of that event,
+  // which is what the idempotency key needs.
+  const eventKey = `${parsed.event}:${parsed.correlationId ?? parsed.providerChargeId}`;
   const redactedPayload = provider.redactWebhookPayload(rawBody);
 
   const inserted = await db

@@ -29,6 +29,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     .select({
       id: supports.id,
       correlationId: supports.correlationId,
+      providerChargeId: supports.providerChargeId,
       status: supports.status,
       paidAt: supports.paidAt,
       lastPolledAt: supports.lastPolledAt,
@@ -55,7 +56,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   if (shouldPoll) {
     try {
       const provider = getPixProvider();
-      const status = await provider.getChargeStatus({ correlationId: support.correlationId });
+      const status = await provider.getChargeStatus({
+        correlationId: support.correlationId,
+        providerChargeId: support.providerChargeId,
+      });
       await db
         .update(supports)
         .set({ lastPolledAt: new Date() })
@@ -70,7 +74,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         // param). Paging through the whole account's transactions on every
         // polling fallback confirmation isn't worth it for what's meant to
         // be a lightweight reinforcement path — the webhook (confirmSupport
-        // via the real event) is the one that reliably captures it.
+        // via the real event) is the one that reliably captures it. With
+        // AbacatePay there's none to capture at all (it exposes an end-to-end
+        // id only for outbound money); /admin/supports falls back to showing
+        // the provider charge id.
         await confirmSupport({ event: "poll", correlationId: support.correlationId, status });
       }
 

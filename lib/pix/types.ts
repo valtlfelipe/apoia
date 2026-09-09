@@ -15,9 +15,19 @@ export type CreateChargeResult = {
   expiresAt: Date | null;
 };
 
+/**
+ * A webhook delivery reduced to what the domain acts on. `correlationId` and
+ * `providerChargeId` are both optional but **at least one is always set** —
+ * whichever the provider echoes back is how the support row gets matched
+ * (see `confirmSupport`). `parseWebhook` returns null rather than an event
+ * with neither.
+ */
 export type ParsedWebhookEvent = {
   event: string;
-  correlationId: string;
+  /** Our own id, when the provider echoes it back on the payload. */
+  correlationId?: string;
+  /** The provider's own id for the charge, when the payload carries it. */
+  providerChargeId?: string;
   status: SupportStatus;
   paidAmountCents?: number;
   paidAt?: Date;
@@ -35,18 +45,32 @@ export interface PixProvider {
 
   createCharge(input: CreateChargeInput): Promise<CreateChargeResult>;
 
-  getChargeStatus(ref: { correlationId: string }): Promise<SupportStatus>;
+  /**
+   * Both ids are passed because providers disagree on which one addresses a
+   * charge: Woovi looks it up by our `correlationId`, AbacatePay only by its
+   * own id. `providerChargeId` is null until `createCharge` returns.
+   */
+  getChargeStatus(ref: {
+    correlationId: string;
+    providerChargeId: string | null;
+  }): Promise<SupportStatus>;
 
   /**
    * True when the body is the provider's URL-registration ping — the unsigned
    * request a PSP fires at the endpoint to confirm it answers before saving the
    * webhook. The route acks these with an empty 200 without verifying them, so
    * only ever return true for a payload that carries nothing to act on.
+   * Providers that register webhooks purely over their API never see one, and
+   * return false.
    */
   isRegistrationPing(rawBody: string): boolean;
 
-  /** Verifies the webhook came from this provider. Check BEFORE parsing. */
-  verifyWebhook(rawBody: string, headers: Headers): Promise<boolean>;
+  /**
+   * Verifies the webhook came from this provider. Check BEFORE parsing.
+   * Takes the whole Request, not just its headers: some providers (AbacatePay)
+   * authenticate with a secret in the query string rather than a header.
+   */
+  verifyWebhook(rawBody: string, request: Request): Promise<boolean>;
 
   /** Returns null for events this provider doesn't recognize (ack, don't process). */
   parseWebhook(rawBody: string): ParsedWebhookEvent | null;
