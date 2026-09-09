@@ -2,7 +2,7 @@
 
 Todas as mudanças relevantes serão registradas aqui. O formato segue Keep a Changelog e o projeto pretende usar versionamento semântico.
 
-## [Unreleased]
+## [1.0.6] - 2026-09-09
 
 ### Fixed
 
