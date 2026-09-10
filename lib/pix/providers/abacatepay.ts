@@ -46,7 +46,6 @@ type AbacatePayCharge = {
   amount: number;
   status: AbacatePayChargeStatus;
   brCode: string;
-  brCodeBase64?: string;
   expiresAt?: string;
 };
 
@@ -154,7 +153,8 @@ async function createCharge(input: CreateChargeInput): Promise<CreateChargeResul
   return {
     providerChargeId: charge.id,
     brCode: charge.brCode,
-    // `brCodeBase64` is deliberately dropped — see lib/supports/create.ts.
+    // AbacatePay also returns the QR as `brCodeBase64`; we render our own
+    // instead — see lib/supports/create.ts.
     qrCodeImage: null,
     expiresAt: charge.expiresAt ? new Date(charge.expiresAt) : null,
   };
@@ -197,7 +197,9 @@ async function verifyWebhook(rawBody: string, request: Request): Promise<boolean
   if (!signature) return false;
 
   try {
-    const key = env.ABACATEPAY_WEBHOOK_PUBLIC_KEY ?? ABACATEPAY_DEFAULT_PUBLIC_KEY;
+    // `||`, not `??`: this ships as an empty string in .env.example, and an
+    // empty HMAC key would fail the signature check on every real delivery.
+    const key = env.ABACATEPAY_WEBHOOK_PUBLIC_KEY || ABACATEPAY_DEFAULT_PUBLIC_KEY;
     const expected = createHmac("sha256", key)
       .update(Buffer.from(rawBody, "utf8"))
       .digest("base64");
